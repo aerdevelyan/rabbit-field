@@ -1,4 +1,4 @@
-package rabbit_field;
+package rabbit_field.creature;
 
 import static org.junit.Assert.*;
 
@@ -14,8 +14,13 @@ import org.junit.Test;
 
 import mockit.Expectations;
 import mockit.Mocked;
-import rabbit_field.MasterMind.ActionCompleterTask;
-import rabbit_field.MasterMind.PendingProcess;
+import rabbit_field.Field;
+import rabbit_field.creature.Action;
+import rabbit_field.creature.Creature;
+import rabbit_field.creature.MasterMind;
+import rabbit_field.creature.Rabbit;
+import rabbit_field.creature.MasterMind.ActionCompleterTask;
+import rabbit_field.creature.MasterMind.PendingProcess;
 
 public class MasterMindTest {
 	ExecutorService exec = Executors.newSingleThreadExecutor();

@@ -1,4 +1,4 @@
-package rabbit_field;
+package rabbit_field.creature;
 
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -6,8 +6,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import rabbit_field.Action.Move;
-import rabbit_field.Action.Move.Direction;
+import rabbit_field.Field;
+import rabbit_field.creature.Action.Move;
+import rabbit_field.creature.Action.Move.Direction;
 
 public class Rabbit extends Creature {
 	private static Logger log = LogManager.getLogger();

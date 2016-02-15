@@ -1,4 +1,4 @@
-package rabbit_field;
+package rabbit_field.creature;
 
 import java.util.Iterator;
 import java.util.LinkedList;

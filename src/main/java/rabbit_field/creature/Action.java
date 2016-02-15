@@ -1,4 +1,4 @@
-package rabbit_field;
+package rabbit_field.creature;
 
 /**
  * An action that a creature can perform on the field.
