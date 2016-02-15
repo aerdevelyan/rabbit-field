@@ -5,6 +5,9 @@ import java.util.List;
 
 import javax.inject.Singleton;
 
+import rabbit_field.creature.Action;
+import rabbit_field.creature.Creature;
+
 @Singleton
 public class Field {
 	public static final int HOR_SIZE = 50;
