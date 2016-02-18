@@ -69,7 +69,7 @@ public class MasterMind {
 	// checks if they are
 	// - expired: cancel via Future 
 	// - completed: send to decidedActions queue
-	private static class ProcessWatcherTask implements Runnable {
+	protected static class ProcessWatcherTask implements Runnable {
 		private List<PendingProcess> processesToWatch = new LinkedList<>();
 		private BlockingQueue<PendingProcess> enqueuedProcesses;
 		private BlockingQueue<PendingProcess> decidedActions;

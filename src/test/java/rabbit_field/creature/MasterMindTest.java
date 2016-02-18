@@ -1,5 +1,9 @@
 package rabbit_field.creature;
 
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.junit.Assert.*;
 
 import java.util.concurrent.BlockingQueue;
@@ -8,8 +12,13 @@ import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.hamcrest.core.Is;
+import org.hamcrest.core.IsCollectionContaining;
+import org.hamcrest.collection.IsCollectionWithSize;
+import org.hamcrest.collection.IsEmptyCollection;
 import org.junit.Test;
 
 import mockit.Expectations;
@@ -21,6 +30,7 @@ import rabbit_field.creature.MasterMind;
 import rabbit_field.creature.Rabbit;
 import rabbit_field.creature.MasterMind.ActionCompleterTask;
 import rabbit_field.creature.MasterMind.PendingProcess;
+import rabbit_field.creature.MasterMind.ProcessWatcherTask;
 
 public class MasterMindTest {
 	ExecutorService exec = Executors.newSingleThreadExecutor();
@@ -49,13 +59,32 @@ public class MasterMindTest {
 			creature.actionIsDecided(Action.NONE); times = 1;
 		}};
 		
-		Future<Action> futureAction = CompletableFuture.completedFuture(Action.NONE);
+		Future<Action> completedAction = CompletableFuture.completedFuture(Action.NONE);
 		BlockingQueue<PendingProcess> decidedActions = new DelayQueue<>();
 		ActionCompleterTask completerTask = new ActionCompleterTask(decidedActions);
 		exec.execute(completerTask);
-		PendingProcess process = new PendingProcess(creature, futureAction, System.currentTimeMillis()+400);
+		PendingProcess process = new PendingProcess(creature, completedAction, System.currentTimeMillis()+400);
 		decidedActions.put(process);
 		TimeUnit.SECONDS.sleep(1);
 		exec.shutdown();
+	}
+	
+	@Test
+	public void testProcessWatcher() throws InterruptedException {
+		BlockingQueue<PendingProcess> enqueuedProcesses = new LinkedBlockingQueue<>();
+		BlockingQueue<PendingProcess> decidedActions = new DelayQueue<>();
+		ProcessWatcherTask processWatcher = new ProcessWatcherTask(enqueuedProcesses, decidedActions);
+
+		Future<Action> completedAction = CompletableFuture.completedFuture(Action.NONE);
+		PendingProcess process = new PendingProcess(creature, completedAction, System.currentTimeMillis());
+		enqueuedProcesses.add(process);
+		
+		exec.execute(processWatcher);
+		TimeUnit.SECONDS.sleep(1);
+		exec.shutdown();
+		
+		assertThat(enqueuedProcesses, is(empty()));
+		assertThat(decidedActions, hasSize(1));
+		assertThat(decidedActions, hasItem(process));
 	}
 }
