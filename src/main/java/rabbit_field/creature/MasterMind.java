@@ -88,6 +88,15 @@ public class MasterMind {
 					} else {
 						enqueuedProcesses.drainTo(processesToWatch);
 					}
+
+					// expiration time: maximum allowed time is calculated as 
+					// inverse ratio of combined speed of watched creatures
+					float combinedSpeed = 0;
+					for (PendingProcess process : processesToWatch) {
+						combinedSpeed += process.creature.getSpeed();
+					}
+					long maxTimeAllowedMs = (long) ((1f / combinedSpeed) * 1_000L);
+					
 					// iterate list, check PDs for completion and expiration
 					for (Iterator<PendingProcess> iterator = processesToWatch.iterator(); iterator.hasNext();) {
 						PendingProcess process = iterator.next();
@@ -96,8 +105,11 @@ public class MasterMind {
 							decidedActions.put(process);
 							iterator.remove();
 						} else {
-							// TODO check expiration
-							
+							long elapsedMs = System.currentTimeMillis() - process.timeStarted;
+							if (elapsedMs > maxTimeAllowedMs) {
+								log.debug("Found expired process of %s, cancelling.", process.creature);
+								process.futureAction.cancel(true);
+							}
 						}
 					}
 				} catch (InterruptedException e) {
@@ -121,11 +133,16 @@ public class MasterMind {
 				try {
 					log.debug("Examining decided actions queue.");
 					PendingProcess process = decidedActions.take();
-					process.creature.actionIsDecided(process.futureAction.get());
+					if (process.futureAction.isCancelled()) {
+						process.creature.actionIsDecided(Action.NONE_BY_TIMEOUT);
+					}
+					else {
+						process.creature.actionIsDecided(process.futureAction.get());
+					}
 				} catch (InterruptedException e) {
-					log.debug("ActionCompleter was interrupted", e);
+					log.debug("ActionCompleter was interrupted.", e);
 				} catch (ExecutionException e) {
-					log.warn("Exception during thinking on Action", e);
+					log.warn("Exception during thinking on Action.", e);
 				}
 			}
 		}

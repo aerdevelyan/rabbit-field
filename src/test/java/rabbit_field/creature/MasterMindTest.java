@@ -4,7 +4,7 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -15,19 +15,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.hamcrest.core.Is;
-import org.hamcrest.core.IsCollectionContaining;
-import org.hamcrest.collection.IsCollectionWithSize;
-import org.hamcrest.collection.IsEmptyCollection;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import mockit.Expectations;
 import mockit.Mocked;
 import rabbit_field.Field;
-import rabbit_field.creature.Action;
-import rabbit_field.creature.Creature;
-import rabbit_field.creature.MasterMind;
-import rabbit_field.creature.Rabbit;
 import rabbit_field.creature.MasterMind.ActionCompleterTask;
 import rabbit_field.creature.MasterMind.PendingProcess;
 import rabbit_field.creature.MasterMind.ProcessWatcherTask;
@@ -37,8 +30,8 @@ public class MasterMindTest {
 	@Mocked Creature creature;
 	@Mocked Field field;
 	
-	//@Test
-	public void testWholeMasterMind() throws InterruptedException {
+	@Test @Ignore("too heavy to execute routinely")
+	public void wholeMasterMindExecution() throws InterruptedException {
 		MasterMind masterMind = new MasterMind();
 		Creature rabbit1 = new Rabbit("Bugz", masterMind, field);
 		Creature rabbit2 = new Rabbit("Bill", masterMind, field);
@@ -53,7 +46,7 @@ public class MasterMindTest {
 	}
 
 	@Test
-	public void testCompleter() throws InterruptedException {
+	public void completer() throws InterruptedException {
 		new Expectations() {{
 			creature.getSpeed(); result = 2f;
 			creature.actionIsDecided(Action.NONE); times = 1;
@@ -70,7 +63,7 @@ public class MasterMindTest {
 	}
 	
 	@Test
-	public void testProcessWatcher() throws InterruptedException {
+	public void processWatcher() throws InterruptedException {
 		BlockingQueue<PendingProcess> enqueuedProcesses = new LinkedBlockingQueue<>();
 		BlockingQueue<PendingProcess> decidedActions = new DelayQueue<>();
 		ProcessWatcherTask processWatcher = new ProcessWatcherTask(enqueuedProcesses, decidedActions);

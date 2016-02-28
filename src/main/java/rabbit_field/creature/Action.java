@@ -7,6 +7,7 @@ package rabbit_field.creature;
 public abstract class Action {
 	public static final None NONE = new None();
 	public static final None NONE_BY_FAILURE = new None();
+	public static final None NONE_BY_TIMEOUT = new None();
 	
 	public static class None extends Action { }
 	
