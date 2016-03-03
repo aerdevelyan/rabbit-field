@@ -107,8 +107,10 @@ public class MasterMind {
 						} else {
 							long elapsedMs = System.currentTimeMillis() - process.timeStarted;
 							if (elapsedMs > maxTimeAllowedMs) {
-								log.debug("Found expired process of %s, cancelling.", process.creature);
+								log.debug("Found expired process of {}, cancelling.", process.creature);
 								process.futureAction.cancel(true);
+								// no need to do anything more since isDone() now returns true and 
+								// on the next iteration the process will be put into decidedActions
 							}
 						}
 					}
@@ -134,7 +136,7 @@ public class MasterMind {
 					log.debug("Examining decided actions queue.");
 					PendingProcess process = decidedActions.take();
 					if (process.futureAction.isCancelled()) {
-						process.creature.actionIsDecided(Action.NONE_BY_TIMEOUT);
+						process.creature.actionIsDecided(Action.NONE_BY_CANCEL);
 					}
 					else {
 						process.creature.actionIsDecided(process.futureAction.get());

@@ -6,14 +6,18 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.junit.Assert.assertThat;
 
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.DelayQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -79,5 +83,61 @@ public class MasterMindTest {
 		assertThat(enqueuedProcesses, is(empty()));
 		assertThat(decidedActions, hasSize(1));
 		assertThat(decidedActions, hasItem(process));
+	}
+	
+	@Test
+	public void processWatcherExpiration() throws InterruptedException, ExecutionException {
+		new Expectations() {{
+			creature.getSpeed(); result = 2f;
+		}};
+		
+		BlockingQueue<PendingProcess> enqueuedProcesses = new LinkedBlockingQueue<>();
+		BlockingQueue<PendingProcess> decidedActions = new DelayQueue<>();
+		ProcessWatcherTask processWatcher = new ProcessWatcherTask(enqueuedProcesses, decidedActions);
+		exec = Executors.newCachedThreadPool();
+		
+		Future<Action> slowAction = exec.submit(() -> { TimeUnit.SECONDS.sleep(1); return Action.NONE; });
+		PendingProcess process = new PendingProcess(creature, slowAction, System.currentTimeMillis());
+		enqueuedProcesses.add(process);
+		exec.execute(processWatcher);
+		TimeUnit.SECONDS.sleep(1);
+		exec.shutdownNow();
+		assertThat(enqueuedProcesses, is(empty()));
+		assertThat(decidedActions, hasSize(1));
+		assertThat(decidedActions.take().futureAction.isCancelled(), is(true));
+	}
+	
+	
+	
+	private Future<Action> createFuture(boolean canceled, boolean done, Optional<Function<Boolean, Boolean>> onCancel) {
+		return new Future<Action>() {
+			@Override
+			public boolean cancel(boolean mayInterruptIfRunning) {
+				if (onCancel.isPresent()) {
+					return onCancel.get().apply(mayInterruptIfRunning);
+				}
+				return false;
+			}
+
+			@Override
+			public boolean isCancelled() {
+				return canceled;
+			}
+
+			@Override
+			public boolean isDone() {
+				return done;
+			}
+
+			@Override
+			public Action get() throws InterruptedException, ExecutionException {
+				return null;
+			}
+
+			@Override
+			public Action get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+				return null;
+			}
+		};
 	}
 }
