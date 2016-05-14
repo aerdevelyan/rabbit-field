@@ -16,7 +16,7 @@ public class Field {
 	private Cell[][] cells = new Cell[HOR_SIZE][VERT_SIZE];
 	
 	public Field() {
-		// create cells
+		// create cells and populate the array
 		for (int hidx = 0; hidx < HOR_SIZE; hidx++) {
 			for (int vidx = 0; vidx < VERT_SIZE; vidx++) {
 				cells[hidx][vidx] = new Cell();

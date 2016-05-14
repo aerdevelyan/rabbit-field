@@ -1,9 +1,5 @@
 package rabbit_field;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import javax.inject.Singleton;
 
 import org.apache.logging.log4j.LogManager;

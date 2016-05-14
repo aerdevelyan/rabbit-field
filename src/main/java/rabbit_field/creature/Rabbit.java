@@ -44,7 +44,7 @@ public class Rabbit extends Creature {
 		Action action = new Action.Move(Direction.values()[r.nextInt(3)]);
 		try {
 			log.debug(name + " thinking...");
-			TimeUnit.MILLISECONDS.sleep(100 + r.nextInt(150));
+			TimeUnit.MILLISECONDS.sleep(50 + r.nextInt(50));
 		} catch (InterruptedException e) {
 		}
 		log.debug(name + " decided: " + action);

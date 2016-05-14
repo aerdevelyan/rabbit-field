@@ -25,8 +25,8 @@ public class RabbitFieldApp {
         Creator force = injector.getInstance(Creator.class);
         force.initWorld();
 
-        TimeUnit.SECONDS.sleep(10);
-        server.stop();        
+        TimeUnit.SECONDS.sleep(100);
+        server.stop();
         force.endWorld();
     }
 
@@ -34,5 +34,4 @@ public class RabbitFieldApp {
 		return uiBus;
 	}
 
-    
 }
