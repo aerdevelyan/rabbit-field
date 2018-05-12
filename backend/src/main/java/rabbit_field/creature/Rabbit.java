@@ -26,13 +26,12 @@ public class Rabbit extends Creature {
 		this.name = name;
 		setStamina(INITIAL_STAMINA);
 	}
-	
 
 	@Override
 	public int getMaxAge() {
 		return MAX_AGE;
 	}
-	
+
 	@Override
 	public float getSpeed() {
 		return SPEED;

@@ -29,7 +29,9 @@ import rabbit_field.creature.MasterMind.ActionCompleterTask;
 import rabbit_field.creature.MasterMind.PendingProcess;
 import rabbit_field.creature.MasterMind.ProcessWatcherTask;
 
-public class MasterMindTest {
+@Deprecated
+@Ignore
+public class JMMasterMindTest {
 	ExecutorService exec = Executors.newSingleThreadExecutor();
 	@Mocked Creature creature;
 	@Mocked Field field;

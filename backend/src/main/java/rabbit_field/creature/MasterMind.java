@@ -116,6 +116,7 @@ public class MasterMind {
 					}
 				} catch (InterruptedException e) {
 					log.debug("ProcessWatcherTask was interrupted", e);
+					Thread.currentThread().interrupt();
 				}
 			}
 		}

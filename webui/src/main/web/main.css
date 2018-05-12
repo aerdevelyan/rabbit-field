@@ -9,7 +9,6 @@ body {
 	font-family: helvetica, sans-serif;
 	color: rgb(112, 112, 112);
 	font-size: 12px;
-	
 }
 
 
@@ -23,11 +22,14 @@ body {
 	height: 50px;
 	background-color: #f2f4f2;
 }
+
 h1 {
 	text-align: center; 
 }
 
-
+.myclass {
+	margin: 0;
+}
 
 /* .product-card div { */
 /* 	/*border: black 1px solid ;*/ */
