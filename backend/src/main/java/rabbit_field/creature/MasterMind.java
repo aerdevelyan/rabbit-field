@@ -27,6 +27,7 @@ import org.apache.logging.log4j.Logger;
 @Singleton
 public class MasterMind {
 	
+	// wraps Creature.decideAction() as Callable
 	private static class MindProcessTask implements Callable<Action> {
 		final Creature creature;
 		
@@ -44,7 +45,7 @@ public class MasterMind {
 		final Creature creature;
 		final Future<Action> futureAction;
 		final long timeStarted;
-		
+
 		public PendingProcess(Creature creature, Future<Action> futureAction, long timeStarted) {
 			this.creature = creature;
 			this.futureAction = futureAction;
@@ -73,7 +74,7 @@ public class MasterMind {
 		private List<PendingProcess> processesToWatch = new LinkedList<>();
 		private BlockingQueue<PendingProcess> enqueuedProcesses;
 		private BlockingQueue<PendingProcess> decidedActions;
-		
+
 		public ProcessWatcherTask(BlockingQueue<PendingProcess> enqueuedProcesses, BlockingQueue<PendingProcess> decidedActions) {
 			this.enqueuedProcesses = enqueuedProcesses;
 			this.decidedActions = decidedActions;
@@ -144,6 +145,7 @@ public class MasterMind {
 					}
 				} catch (InterruptedException e) {
 					log.debug("ActionCompleter was interrupted.", e);
+					Thread.currentThread().interrupt();
 				} catch (ExecutionException e) {
 					log.warn("Exception during thinking on Action.", e);
 				}
@@ -153,10 +155,10 @@ public class MasterMind {
 	
 	private static Logger log = LogManager.getLogger();
 	private ExecutorService processExec = Executors.newSingleThreadExecutor();
-	private ExecutorService processWatchExec = Executors.newSingleThreadExecutor(); // TODO consider replacing these two with one
+	private ExecutorService processWatchExec = Executors.newSingleThreadExecutor();
 	private ExecutorService actionCompletionExec = Executors.newSingleThreadExecutor();
 	private BlockingQueue<PendingProcess> enqueuedProcesses = new LinkedBlockingQueue<>();
-	private BlockingQueue<PendingProcess> decidedActions = new DelayQueue<>();
+	private DelayQueue<PendingProcess> decidedActions = new DelayQueue<>();
 	
 	private void enqueue(MindProcessTask processTask) throws InterruptedException {
 		log.debug("Enqueueing mind process task " + Thread.currentThread().getName());
@@ -171,7 +173,7 @@ public class MasterMind {
 		actionCompletionExec.execute(new ActionCompleterTask(decidedActions));
 	}
 	
-	public void letMeThink(Creature creature) {
+	public void letCreatureThink(Creature creature) {
 		try {
 			enqueue(new MindProcessTask(creature));
 		} catch (Exception e) {

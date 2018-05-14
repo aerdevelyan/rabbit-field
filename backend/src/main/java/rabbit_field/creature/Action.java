@@ -6,7 +6,9 @@ package rabbit_field.creature;
  */
 public abstract class Action {
 	public static final None NONE = new None();
+	// no action is decided because of some failure (e.g. passed time limit) 
 	public static final None NONE_BY_FAILURE = new None();
+	// no action is decided because of cancellation of mind process
 	public static final None NONE_BY_CANCEL = new None();
 	
 	public static class None extends Action { }
