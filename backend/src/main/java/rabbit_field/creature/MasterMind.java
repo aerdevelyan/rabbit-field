@@ -1,6 +1,7 @@
 package rabbit_field.creature;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -20,6 +21,10 @@ import javax.inject.Singleton;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import com.google.common.eventbus.Subscribe;
+
+import rabbit_field.event.ShutdownEvent;
 
 /**
  * Controller for mind processes of all creatures.
@@ -60,7 +65,7 @@ public class MasterMind {
 		}
 
 		@Override public int compareTo(Delayed other) {
-			return (int) (this.getDelay(TimeUnit.MILLISECONDS) - other.getDelay(TimeUnit.MILLISECONDS));
+			return (int) (this.getDelay(MILLISECONDS) - other.getDelay(MILLISECONDS));
 		}
 
 		@Override public long getDelay(TimeUnit unit) {
@@ -69,7 +74,7 @@ public class MasterMind {
 			long elapsed = System.currentTimeMillis() - timeStarted;
 			long delay = Math.max(msPerAction - elapsed, 0);
 			log.debug("Creature {} has delay: {}", creature, delay);
-			return unit.convert(delay, TimeUnit.MILLISECONDS);
+			return unit.convert(delay, MILLISECONDS);
 		}
 	}
 	
@@ -80,7 +85,7 @@ public class MasterMind {
 	 * - completed: send to decidedActions queue
 	 */
 	protected static class ProcessWatcherTask extends AbstractWatcherTask {
-		private static Logger log = LogManager.getLogger();
+		private final static Logger log = LogManager.getLogger();
 		private final List<PendingProcess> processesToWatch = new LinkedList<>();
 		private final BlockingQueue<PendingProcess> enqueuedProcesses;
 		private final DelayQueue<PendingProcess> decidedActions;
@@ -146,7 +151,7 @@ public class MasterMind {
 	// notifies the Creature to perform these actions on the Field.
 	// TODO factor it out to creature controller?
 	protected static class ActionCompleterTask extends AbstractWatcherTask {
-		private static Logger log = LogManager.getLogger();
+		private final static Logger log = LogManager.getLogger();
 		private final DelayQueue<PendingProcess> decidedActions;
 		
 		public ActionCompleterTask(DelayQueue<PendingProcess> decidedActions) {
@@ -156,7 +161,8 @@ public class MasterMind {
 		@Override protected void watchCycle() {			
 			try {
 				log.debug("Examining decided actions queue.");
-				PendingProcess process = decidedActions.take();
+				PendingProcess process = decidedActions.poll(1, SECONDS);
+				if (process == null) return;
 				if (process.futureAction.isCancelled()) {
 					process.creature.actionIsDecided(Action.NONE_BY_CANCEL);
 				}
@@ -173,6 +179,7 @@ public class MasterMind {
 	}
 	
 	protected static abstract class AbstractWatcherTask implements Runnable {
+		private final static Logger log = LogManager.getLogger();
 		protected volatile boolean shutdown;
 		
 		public void shutdown() {
@@ -189,12 +196,14 @@ public class MasterMind {
 		protected abstract void watchCycle();
 	}
 	
-	private static Logger log = LogManager.getLogger();
-	private ExecutorService processExec = Executors.newSingleThreadExecutor();
-	private ExecutorService processWatchExec = Executors.newSingleThreadExecutor();
-	private ExecutorService actionCompletionExec = Executors.newSingleThreadExecutor();
-	private BlockingQueue<PendingProcess> enqueuedProcesses = new LinkedBlockingQueue<>();
-	private DelayQueue<PendingProcess> decidedActions = new DelayQueue<>();
+	private final static Logger log = LogManager.getLogger();
+	private final ExecutorService processExec = Executors.newSingleThreadExecutor(rnbl -> new Thread(rnbl, "mind process"));
+	private final ExecutorService processWatchExec = Executors.newSingleThreadExecutor(rnbl -> new Thread(rnbl, "process watcher"));
+	private final ExecutorService actionCompletionExec = Executors.newSingleThreadExecutor(rnbl -> new Thread(rnbl, "action completer"));
+	private final BlockingQueue<PendingProcess> enqueuedProcesses = new LinkedBlockingQueue<>();
+	private final DelayQueue<PendingProcess> decidedActions = new DelayQueue<>();
+	private final ProcessWatcherTask processWatcherTask = new ProcessWatcherTask(enqueuedProcesses, decidedActions);
+	private final ActionCompleterTask actionCompleterTask = new ActionCompleterTask(decidedActions);
 	
 	private void enqueue(MindProcessTask processTask) throws InterruptedException {
 		log.debug("Enqueueing mind process task {}", Thread.currentThread().getName());
@@ -205,10 +214,11 @@ public class MasterMind {
 	}
 
 	public MasterMind() {
-		processWatchExec.execute(new ProcessWatcherTask(enqueuedProcesses, decidedActions));
-		actionCompletionExec.execute(new ActionCompleterTask(decidedActions));
+		log.info("Initializing MasterMind");
+		processWatchExec.execute(processWatcherTask);
+		actionCompletionExec.execute(actionCompleterTask);
 	}
-	
+
 	public void letCreatureThink(Creature creature) {
 		try {
 			enqueue(new MindProcessTask(creature));
@@ -218,10 +228,22 @@ public class MasterMind {
 		}
 	}
 
-	public void shutdown() {
-		log.info("Shutting down executors.");
-		processExec.shutdownNow();
-		processWatchExec.shutdownNow();
-		actionCompletionExec.shutdownNow();
+	@Subscribe 
+	public void shutdown(ShutdownEvent evt) {
+		log.info("Shutting down tasks and executors.");
+		processWatcherTask.shutdown();
+		actionCompleterTask.shutdown();
+		processExec.shutdown();
+		processWatchExec.shutdown();
+		actionCompletionExec.shutdown();
+		try {
+			processWatchExec.awaitTermination(10, SECONDS);
+			actionCompletionExec.awaitTermination(10, SECONDS);
+			processExec.awaitTermination(10, SECONDS);
+		} catch (InterruptedException e) {
+			log.error("Interrupt while waiting for termination of executors");
+		}
+		log.info("Shutdown completed");
 	}
+	
 }

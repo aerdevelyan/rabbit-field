@@ -45,6 +45,7 @@ public class Rabbit extends Creature {
 			log.debug(name + " thinking...");
 			TimeUnit.MILLISECONDS.sleep(50 + r.nextInt(50));
 		} catch (InterruptedException e) {
+			log.warn("Got interrupted");
 		}
 		log.debug(name + " decided: " + action);
 		return action;
