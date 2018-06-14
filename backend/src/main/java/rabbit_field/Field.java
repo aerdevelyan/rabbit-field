@@ -10,10 +10,30 @@ import rabbit_field.creature.Creature;
 
 @Singleton
 public class Field {
+
+	/**
+	 * Cell is a container for {@link FieldObject}s
+	 */
+	public static class Cell {
+		private final List<FieldObject> objects = new ArrayList<>();
+		
+		public List<FieldObject> getObjects() {
+			return objects;
+		}
+		
+		public void addObject(FieldObject fo) {
+			objects.add(fo);
+		}
+		
+//		public void setObjects(List<FieldObject> objects) {
+//			this.objects = objects;
+//		}
+	}
+	
 	public static final int HOR_SIZE = 50;
 	public static final int VERT_SIZE = 50;
 	
-	private Cell[][] cells = new Cell[HOR_SIZE][VERT_SIZE];
+	private final Cell[][] cells = new Cell[HOR_SIZE][VERT_SIZE];
 	
 	public Field() {
 		// create cells and populate the array
@@ -24,25 +44,17 @@ public class Field {
 		}
 	}
 	
-	public List<FieldObject> whatIsAroundMe(FieldObject obj, int horOffset, int vertOffset) {
+	public Cell[][] getCells() {
+		return cells;
+	}
+	
+	public List<FieldObject> whatIsAround(FieldObject obj, int horOffset, int vertOffset) {
 		
 		return null;
 	}
 	
 	public void placeObject(FieldObject obj, int horPosition, int vertPosition) {
 		
-	}
-
-	public static class Cell {
-		List<FieldObject> objects = new ArrayList<FieldObject>();
-
-		public List<FieldObject> getObjects() {
-			return objects;
-		}
-
-		public void setObjects(List<FieldObject> objects) {
-			this.objects = objects;
-		}
 	}
 
 	public void perform(Action action, Creature creature) {
