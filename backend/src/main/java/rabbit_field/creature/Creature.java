@@ -15,7 +15,6 @@ import rabbit_field.FieldObject;
  */
 public abstract class Creature implements FieldObject {
 	private static Logger log = LogManager.getLogger();
-	private MasterMind masterMind;
 
 	/**
 	 * The current age of a creature. When it reaches MAX_AGE creature dies.
@@ -33,15 +32,17 @@ public abstract class Creature implements FieldObject {
 	 */
 	private Field field;
 
-
-//	@Inject
-	public Creature(MasterMind masterMind, Field field) {
-		this.masterMind = masterMind;
+	public Creature(/*MasterMind masterMind,*/ Field field) {
+//		this.masterMind = masterMind;
 		this.field = field;
 	}
 	
-	public void incrementAge() {
+	public void incrementAge() { //TODO limit
 		age++;
+	}
+	
+	public void decrementStamina() {
+		stamina--;
 	}
 	
 	public int getAge() {
@@ -54,40 +55,35 @@ public abstract class Creature implements FieldObject {
 
 	public void setStamina(int stamina) {
 		this.stamina = stamina;
-		adjustState();
+//		adjustState();
 	}
 	
-	private void adjustState() {
-		incrementAge();
-		if (getAge() >= getMaxAge() || getStamina() <= 0) {
-			// die
-		}
-		
-	}
+//	private void adjustState() {
+//		incrementAge();
+//		if (getAge() >= getMaxAge() || getStamina() <= 0) {
+//			// die
+//		}
+//		
+//	}
 
-	public Field getField() {
+	protected Field getField() {
 		return field;
 	}
 
-	public void setField(Field field) {
-		this.field = field;
-		startNewMindProcess();
-	}
-
-	private void startNewMindProcess() {
-		masterMind.letCreatureThink(this);
-	}
+//	private void startNewMindProcess() {
+//		masterMind.letCreatureThink(this);
+//	}
 	
 	/**
 	 * Called by MasterMind after computations by decideAction() are finished.
 	 * @param action
 	 */
-	public void actionIsDecided(Action action) {
-		log.debug(this + " performing " + action);
-		getField().perform(action, this);
-		adjustState();
-		startNewMindProcess();
-	}
+//	public void actionIsDecided(Action action) {
+//		log.debug(this + " performing " + action);
+//		getField().perform(action, this);
+//		adjustState();
+//		startNewMindProcess();
+//	}
 	
 	/**
 	 * Tell your creator for how long do you want to live on that beautiful Field.
@@ -99,8 +95,7 @@ public abstract class Creature implements FieldObject {
 	 * Maximum actions per second.
 	 */
 	public abstract float getSpeed();
-	
-	
+		
 	/**
 	 * Every specific creature should place here its survival logic.
 	 * @return

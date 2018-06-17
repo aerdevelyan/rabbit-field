@@ -2,9 +2,11 @@ package rabbit_field;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import javax.inject.Singleton;
 
+import rabbit_field.Field.Cell;
 import rabbit_field.creature.Action;
 import rabbit_field.creature.Creature;
 
@@ -48,17 +50,30 @@ public class Field {
 		return cells;
 	}
 	
+	public Field.Cell findRandomFreeCell() {
+		Cell freeCell;
+		Random rnd = new Random();
+		while (true) {
+			Cell rndCell = getCells()[rnd.nextInt(Field.HOR_SIZE)][rnd.nextInt(Field.VERT_SIZE)];
+			if (rndCell.getObjects().size() == 0) {
+				freeCell = rndCell;
+				break;
+			}
+		}
+		return freeCell;
+	}
+	
 	public List<FieldObject> whatIsAround(FieldObject obj, int horOffset, int vertOffset) {
 		
 		return null;
 	}
 	
-	public void placeObject(FieldObject obj, int horPosition, int vertPosition) {
-		
-	}
-
-	public void perform(Action action, Creature creature) {
-		
-	}
+//	public void placeObject(FieldObject obj, int horPosition, int vertPosition) {
+//		
+//	}
+//
+//	public void perform(Action action, Creature creature) {
+//		
+//	}
 }
 

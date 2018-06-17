@@ -15,7 +15,7 @@ public abstract class Action {
 	
 	
 	public static class Move extends Action {
-		// TODO consider refactor: move to field?
+
 		public enum Direction {
 			NORTH, SOUTH, EAST, WEST, 
 		}

@@ -3,7 +3,6 @@ package rabbit_field.creature;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.concurrent.BlockingQueue;
@@ -18,7 +17,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.junit.Before;
 import org.junit.Test;
 
-import rabbit_field.creature.MasterMind.ActionCompleterTask;
 import rabbit_field.creature.MasterMind.PendingProcess;
 import rabbit_field.creature.MasterMind.ProcessWatcherTask;
 
@@ -32,19 +30,6 @@ public class MasterMindTest {
 	public void prepare() {
 		when(creature.getSpeed()).thenReturn(2f);
 		when(creature.toString()).thenReturn("testcreature");
-	}
-	
-	@Test
-	public void testCompleter() throws InterruptedException {
-		Future<Action> completedAction = CompletableFuture.completedFuture(Action.NONE);
-		ActionCompleterTask completerTask = new ActionCompleterTask(decidedActions);
-		exec.execute(completerTask);
-		PendingProcess process = new PendingProcess(creature, completedAction, System.currentTimeMillis() + 400);
-		decidedActions.put(process);
-		completerTask.shutdown();
-		exec.shutdown();
-		exec.awaitTermination(5, SECONDS);
-		verify(creature).actionIsDecided(Action.NONE);
 	}
 	
 	@Test

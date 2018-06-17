@@ -17,12 +17,12 @@ public class Rabbit extends Creature {
 	public static final float SPEED = 2f;
 	
 	/**
-	 * Each rabbit can have a name.
+	 * Each rabbit can have a name. TODO move to Creature?
 	 */
 	private String name;
 	
-	public Rabbit(String name, MasterMind mind, Field field) {
-		super(mind, field);
+	public Rabbit(String name, /*MasterMind mind,*/ Field field) {
+		super(field);
 		this.name = name;
 		setStamina(INITIAL_STAMINA);
 	}
@@ -39,11 +39,11 @@ public class Rabbit extends Creature {
 
 	@Override
 	public Action decideAction() {
-		Random r = new Random(47);
-		Action action = new Action.Move(Direction.values()[r.nextInt(3)]);
+		Random rnd = new Random();
+		Action action = new Action.Move(Direction.values()[rnd.nextInt(3)]);
 		try {
 			log.debug(name + " thinking...");
-			TimeUnit.MILLISECONDS.sleep(50 + r.nextInt(50));
+			TimeUnit.MILLISECONDS.sleep(150 + rnd.nextInt(50));
 		} catch (InterruptedException e) {
 			log.warn("Got interrupted");
 		}

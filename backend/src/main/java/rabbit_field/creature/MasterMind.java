@@ -10,7 +10,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -24,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.eventbus.Subscribe;
 
+import rabbit_field.creature.MasterMindException.FailureType;
 import rabbit_field.event.ShutdownEvent;
 
 /**
@@ -53,7 +53,7 @@ public class MasterMind {
 	/**
 	 * Used to track enqueued MindProcessTask by watcher and completer tasks.
 	 */
-	protected static class PendingProcess implements Delayed {
+	public static class PendingProcess implements Delayed {
 		final Creature creature;
 		final Future<Action> futureAction;
 		final long timeStarted;
@@ -146,64 +146,13 @@ public class MasterMind {
 			return maxTimeAllowedMs;
 		}
 	}
-
-	// Takes creature actions from decidedActions queue after delay is done, 
-	// notifies the Creature to perform these actions on the Field.
-	// TODO factor it out to creature controller?
-	protected static class ActionCompleterTask extends AbstractWatcherTask {
-		private final static Logger log = LogManager.getLogger();
-		private final DelayQueue<PendingProcess> decidedActions;
-		
-		public ActionCompleterTask(DelayQueue<PendingProcess> decidedActions) {
-			this.decidedActions = decidedActions;
-		}
-
-		@Override protected void watchCycle() {			
-			try {
-				log.debug("Examining decided actions queue.");
-				PendingProcess process = decidedActions.poll(1, SECONDS);
-				if (process == null) return;
-				if (process.futureAction.isCancelled()) {
-					process.creature.actionIsDecided(Action.NONE_BY_CANCEL);
-				}
-				else {
-					process.creature.actionIsDecided(process.futureAction.get());
-				}
-			} catch (InterruptedException e) {
-				log.debug("ActionCompleter was interrupted.", e);
-				Thread.currentThread().interrupt();
-			} catch (ExecutionException e) {
-				log.warn("Exception during thinking on Action.", e);
-			}
-		}
-	}
-	
-	protected static abstract class AbstractWatcherTask implements Runnable {
-		private final static Logger log = LogManager.getLogger();
-		protected volatile boolean shutdown;
-		
-		public void shutdown() {
-			log.debug("Shutdown is requested");
-			shutdown = true;
-		}
-		
-		@Override public void run() {
-			do {
-				watchCycle();
-			} while (!Thread.interrupted() && !shutdown);
-		}
-		
-		protected abstract void watchCycle();
-	}
 	
 	private final static Logger log = LogManager.getLogger();
 	private final ExecutorService processExec = Executors.newSingleThreadExecutor(rnbl -> new Thread(rnbl, "mind process"));
 	private final ExecutorService processWatchExec = Executors.newSingleThreadExecutor(rnbl -> new Thread(rnbl, "process watcher"));
-	private final ExecutorService actionCompletionExec = Executors.newSingleThreadExecutor(rnbl -> new Thread(rnbl, "action completer"));
 	private final BlockingQueue<PendingProcess> enqueuedProcesses = new LinkedBlockingQueue<>();
 	private final DelayQueue<PendingProcess> decidedActions = new DelayQueue<>();
 	private final ProcessWatcherTask processWatcherTask = new ProcessWatcherTask(enqueuedProcesses, decidedActions);
-	private final ActionCompleterTask actionCompleterTask = new ActionCompleterTask(decidedActions);
 	
 	private void enqueue(MindProcessTask processTask) throws InterruptedException {
 		log.debug("Enqueueing mind process task {}", Thread.currentThread().getName());
@@ -216,34 +165,54 @@ public class MasterMind {
 	public MasterMind() {
 		log.info("Initializing MasterMind");
 		processWatchExec.execute(processWatcherTask);
-		actionCompletionExec.execute(actionCompleterTask);
 	}
 
-	public void letCreatureThink(Creature creature) {
+	public void letCreatureThink(Creature creature) throws MasterMindException {
 		try {
 			enqueue(new MindProcessTask(creature));
 		} catch (Exception e) {
 			log.warn("Error trying to enqueue a MindProcessTask", e);
-			creature.actionIsDecided(Action.NONE_BY_FAILURE);
+			throw new MasterMindException("Failed to enqueue mind process", e, FailureType.ENQUEUING);
 		}
 	}
 
+	public DelayQueue<PendingProcess> getDecidedActions() {
+		return decidedActions;
+	}
+	
 	@Subscribe 
 	public void shutdown(ShutdownEvent evt) {
 		log.info("Shutting down tasks and executors.");
 		processWatcherTask.shutdown();
-		actionCompleterTask.shutdown();
 		processExec.shutdown();
 		processWatchExec.shutdown();
-		actionCompletionExec.shutdown();
 		try {
 			processWatchExec.awaitTermination(10, SECONDS);
-			actionCompletionExec.awaitTermination(10, SECONDS);
 			processExec.awaitTermination(10, SECONDS);
 		} catch (InterruptedException e) {
-			log.error("Interrupt while waiting for termination of executors");
+			log.error("Interrupt while waiting for termination of executors", e);
 		}
 		log.info("Shutdown completed");
 	}
 	
+}
+
+class MasterMindException extends Exception {
+	private static final long serialVersionUID = 1L;
+	private FailureType failureType;
+	
+	public enum FailureType { ENQUEUING }
+
+	public MasterMindException(String message, Throwable cause) {
+		super(message, cause);
+	}
+	
+	public MasterMindException(String message, Throwable cause, FailureType failureType) {
+		super(message, cause);
+		this.failureType = failureType;
+	}
+
+	public FailureType getFailureType() {
+		return failureType;
+	}
 }

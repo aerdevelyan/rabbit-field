@@ -11,27 +11,27 @@ import org.apache.logging.log4j.Logger;
 import com.google.common.eventbus.EventBus;
 
 import rabbit_field.Field.Cell;
+import rabbit_field.creature.CreatureController;
 import rabbit_field.creature.MasterMind;
 import rabbit_field.creature.Rabbit;
 import rabbit_field.event.ShutdownEvent;
 
 /**
- * God-like object that creates the field, creatures and issues commands.
- *
+ * Creates and initializes the field, creatures and issues commands.
  */
 @Singleton
 public class Creator {
 	private final static Logger log = LogManager.getLogger();
 	private final EventBus eventBus;
 	private final Field field;
-	private final MasterMind masterMind; 
+	private final CreatureController creatureController; 
 	private final int INIT_RABBITS = 2;
 	
 	@Inject
-	public Creator(EventBus eventBus, Field field, MasterMind masterMind) {
+	public Creator(EventBus eventBus, Field field, CreatureController creatureController) {
 		this.eventBus = eventBus;
 		this.field = field;
-		this.masterMind = masterMind;
+		this.creatureController = creatureController;
 	}
 
 	public void initWorld() {
@@ -46,25 +46,11 @@ public class Creator {
 
 	private void creatures() {
 		for (int n = 1; n <= INIT_RABBITS; n++) {
-			Rabbit rabbit = new Rabbit("Rabbit-" + n, masterMind, field);
-			Cell freeCell = findRandomFreeCell();
-			freeCell.addObject(rabbit);
+			Rabbit rabbit = new Rabbit("Rabbit-" + n, field);
+			creatureController.introduce(rabbit);
 		}
 	}
 
-	private Field.Cell findRandomFreeCell() {
-		Cell freeCell;
-		Cell[][] cells = field.getCells();
-		Random rnd = new Random();
-		while (true) {
-			Cell rndCell = cells[rnd.nextInt(Field.HOR_SIZE)][rnd.nextInt(Field.VERT_SIZE)];
-			if (rndCell.getObjects().size() == 0) {
-				freeCell = rndCell;
-				break;
-			}
-		}
-		return freeCell;
-	}
 
 	public void endWorld() {
 		log.info("Apocalypse everyone!");
