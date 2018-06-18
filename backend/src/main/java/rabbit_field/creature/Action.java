@@ -1,5 +1,7 @@
 package rabbit_field.creature;
 
+import rabbit_field.Field;
+
 /**
  * An action that a creature can perform on the field.
  *
@@ -16,17 +18,13 @@ public abstract class Action {
 	
 	public static class Move extends Action {
 
-		public enum Direction {
-			NORTH, SOUTH, EAST, WEST, 
-		}
+		private final Field.Direction direction;
 		
-		private final Direction direction;
-		
-		public Move(Direction direction) {
+		public Move(Field.Direction direction) {
 			this.direction = direction;
 		}
 
-		public Direction getDirection() {
+		public Field.Direction getDirection() {
 			return direction;
 		}
 

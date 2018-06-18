@@ -100,14 +100,10 @@ class UpdatesFulfillmentTask extends AbstractWatcherTask {
 
 	private void accomplishAction(Creature creature, Action action) {
 		if (action instanceof Action.Move) {
-			move(creature, (Action.Move) action);
+			field.move(creature, ((Action.Move) action).getDirection());
 		}
 		creature.decrementStamina();
 		creature.incrementAge();
-	}
-
-	private void move(Creature creature, Move action) {
-		
 	}
 
 	private void addCreature(Creature creature) {

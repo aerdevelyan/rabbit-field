@@ -1,60 +1,135 @@
 package rabbit_field;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Singleton;
 
-import rabbit_field.Field.Cell;
-import rabbit_field.creature.Action;
-import rabbit_field.creature.Creature;
+import rabbit_field.creature.CreatureController;
 
 @Singleton
 public class Field {
-
-	/**
-	 * Cell is a container for {@link FieldObject}s
-	 */
-	public static class Cell {
-		private final List<FieldObject> objects = new ArrayList<>();
+	
+	public static class Position {
+		private final int hpos, vpos;
 		
-		public List<FieldObject> getObjects() {
-			return objects;
+		public Position(int hpos, int vpos) {
+			this.hpos = hpos;
+			this.vpos = vpos;
+		}
+
+		public int getHpos() {
+			return hpos;
+		}
+
+		public int getVpos() {
+			return vpos;
+		}
+
+		@Override
+		public int hashCode() {
+			return (hpos + 1) * (vpos + 1) + hpos;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Position other = (Position) obj;
+			if (hpos != other.hpos)
+				return false;
+			if (vpos != other.vpos)
+				return false;
+			return true;
+		}
+	}
+		
+	/**
+	 * Cell is a container for {@link FieldObject}s.
+	 * Thread safety holds only with single writer: {@link CreatureController}.
+	 * TODO exception on unsuccessful add or remove
+	 */ 
+	@ThreadSafe
+	public static class Cell {
+		private final Position position;
+		private final Set<FieldObject> objects = new HashSet<>();
+		
+		public Cell(int hpos, int vpos) {
+			position = new Position(hpos, vpos);
+		}
+
+		public synchronized Set<FieldObject> getObjects() {
+			return new HashSet<>(objects);
 		}
 		
-		public void addObject(FieldObject fo) {
+		public synchronized void addObject(FieldObject fo) {
+			fo.setPosition(position);
 			objects.add(fo);
 		}
 		
-//		public void setObjects(List<FieldObject> objects) {
-//			this.objects = objects;
-//		}
+		public synchronized void removeObject(FieldObject fo) {
+			objects.remove(fo);
+		}
+		
+		public synchronized void moveObjectTo(FieldObject fo, Cell otherCell) {
+			removeObject(fo);
+			otherCell.addObject(fo);
+		}
+
+		public Position getPosition() {
+			return position;
+		}
 	}
 	
+	public enum Direction {
+		NORTH(0, -1), SOUTH(0, 1), EAST(1, 0), WEST(-1, 0);
+		
+		private final int hoffset, voffset;
+
+		private Direction(int hoffset, int voffset) {
+			this.hoffset = hoffset;
+			this.voffset = voffset;
+		}
+
+		public int getHoffset() {
+			return hoffset;
+		}
+		
+		public int getVoffset() {
+			return voffset;
+		}		
+	}
+
 	public static final int HOR_SIZE = 50;
 	public static final int VERT_SIZE = 50;
 	
 	private final Cell[][] cells = new Cell[HOR_SIZE][VERT_SIZE];
 	
 	public Field() {
-		// create cells and populate the array
+		initCells();
+	}
+	
+	// create cells and populate the array
+	private void initCells() {
 		for (int hidx = 0; hidx < HOR_SIZE; hidx++) {
 			for (int vidx = 0; vidx < VERT_SIZE; vidx++) {
-				cells[hidx][vidx] = new Cell();
+				cells[hidx][vidx] = new Cell(hidx, vidx);
 			}
-		}
+		}		
 	}
 	
-	public Cell[][] getCells() {
-		return cells;
-	}
-	
-	public Field.Cell findRandomFreeCell() {
-		Cell freeCell;
+	public Cell findRandomFreeCell() {
+		Cell freeCell = null;
 		Random rnd = new Random();
 		while (true) {
-			Cell rndCell = getCells()[rnd.nextInt(Field.HOR_SIZE)][rnd.nextInt(Field.VERT_SIZE)];
+			Cell rndCell = cells[rnd.nextInt(Field.HOR_SIZE)][rnd.nextInt(Field.VERT_SIZE)];
 			if (rndCell.getObjects().size() == 0) {
 				freeCell = rndCell;
 				break;
@@ -68,12 +143,11 @@ public class Field {
 		return null;
 	}
 	
-//	public void placeObject(FieldObject obj, int horPosition, int vertPosition) {
-//		
-//	}
-//
-//	public void perform(Action action, Creature creature) {
-//		
-//	}
+	public void move(FieldObject fo, Direction direction) {
+		Cell cell = cells[fo.getPosition().getHpos()][fo.getPosition().getVpos()];
+		Cell otherCell = cells[fo.getPosition().getHpos() + direction.hoffset][fo.getPosition().getVpos() + direction.voffset];
+		cell.moveObjectTo(fo, otherCell);
+	}
+
 }
 

@@ -7,8 +7,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import rabbit_field.Field;
+import rabbit_field.Field.Direction;
 import rabbit_field.creature.Action.Move;
-import rabbit_field.creature.Action.Move.Direction;
 
 public class Rabbit extends Creature {
 	private static Logger log = LogManager.getLogger();
@@ -40,7 +40,7 @@ public class Rabbit extends Creature {
 	@Override
 	public Action decideAction() {
 		Random rnd = new Random();
-		Action action = new Action.Move(Direction.values()[rnd.nextInt(3)]);
+		Action action = new Action.Move(Field.Direction.values()[rnd.nextInt(3)]);
 		try {
 			log.debug(name + " thinking...");
 			TimeUnit.MILLISECONDS.sleep(150 + rnd.nextInt(50));

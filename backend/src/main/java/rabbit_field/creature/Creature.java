@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import rabbit_field.Field;
+import rabbit_field.Field.Position;
 import rabbit_field.FieldObject;
 
 /**
@@ -15,6 +16,8 @@ import rabbit_field.FieldObject;
  */
 public abstract class Creature implements FieldObject {
 	private static Logger log = LogManager.getLogger();
+	
+	private Position position;
 	
 	private boolean alive = true;
 
@@ -78,17 +81,13 @@ public abstract class Creature implements FieldObject {
 		alive = false;
 	}
 
-	
-	/**
-	 * Called by MasterMind after computations by decideAction() are finished.
-	 * @param action
-	 */
-//	public void actionIsDecided(Action action) {
-//		log.debug(this + " performing " + action);
-//		getField().perform(action, this);
-//		adjustState();
-//		startNewMindProcess();
-//	}
+	public Position getPosition() {
+		return position;
+	}
+
+	public void setPosition(Position position) {
+		this.position = position;
+	}
 	
 	/**
 	 * For implementations to access the Field.
