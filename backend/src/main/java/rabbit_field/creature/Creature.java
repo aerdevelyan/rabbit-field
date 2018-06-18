@@ -15,14 +15,17 @@ import rabbit_field.FieldObject;
  */
 public abstract class Creature implements FieldObject {
 	private static Logger log = LogManager.getLogger();
+	
+	private boolean alive = true;
 
 	/**
 	 * The current age of a creature. When it reaches MAX_AGE creature dies.
+	 * Age grows with each turn.
 	 */
 	private int age;
 
 	/**
-	 * A life force of a creature. Each move causes a creature to loose some of it. 
+	 * A life force of a creature. Each action (except eating) causes a creature to loose some of it. 
 	 * When creature eats it increases. When it drops to zero creature dies.
 	 */
 	private int stamina;
@@ -32,17 +35,26 @@ public abstract class Creature implements FieldObject {
 	 */
 	private Field field;
 
-	public Creature(/*MasterMind masterMind,*/ Field field) {
-//		this.masterMind = masterMind;
+	public Creature(Field field) {
 		this.field = field;
 	}
 	
-	public void incrementAge() { //TODO limit
-		age++;
-	}
-	
+	public void incrementAge() {
+		if (age < getMaxAge()) {
+			age++;
+		}
+		else {
+			die();
+		}
+	}	
+
 	public void decrementStamina() {
-		stamina--;
+		if (stamina > 0) {
+			stamina--;
+		}
+		else {
+			die();
+		}
 	}
 	
 	public int getAge() {
@@ -55,24 +67,17 @@ public abstract class Creature implements FieldObject {
 
 	public void setStamina(int stamina) {
 		this.stamina = stamina;
-//		adjustState();
 	}
 	
-//	private void adjustState() {
-//		incrementAge();
-//		if (getAge() >= getMaxAge() || getStamina() <= 0) {
-//			// die
-//		}
-//		
-//	}
-
-	protected Field getField() {
-		return field;
+	public boolean isAlive() {
+		return alive;
+	}
+	
+	public void die() {
+		log.info("Creature {} is dead.", this);
+		alive = false;
 	}
 
-//	private void startNewMindProcess() {
-//		masterMind.letCreatureThink(this);
-//	}
 	
 	/**
 	 * Called by MasterMind after computations by decideAction() are finished.
@@ -86,8 +91,14 @@ public abstract class Creature implements FieldObject {
 //	}
 	
 	/**
-	 * Tell your creator for how long do you want to live on that beautiful Field.
-	 * @return
+	 * For implementations to access the Field.
+	 */
+	protected Field getField() {
+		return field;
+	}
+	
+	/**
+	 * Tell for how long do you want to live on that beautiful Field.
 	 */
 	public abstract int getMaxAge();
 	
@@ -101,5 +112,4 @@ public abstract class Creature implements FieldObject {
 	 * @return
 	 */
 	public abstract Action decideAction();
-
 }
