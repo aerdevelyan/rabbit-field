@@ -49,6 +49,11 @@ public class Field {
 				return false;
 			return true;
 		}
+
+		@Override
+		public String toString() {
+			return "Position [hpos=" + hpos + ", vpos=" + vpos + "]";
+		}
 	}
 		
 	/**
@@ -143,11 +148,19 @@ public class Field {
 		return null;
 	}
 	
+	/**
+	 * TODO disallow moving beyond
+	 * @param fo
+	 * @param direction
+	 */
 	public void move(FieldObject fo, Direction direction) {
 		Cell cell = cells[fo.getPosition().getHpos()][fo.getPosition().getVpos()];
 		Cell otherCell = cells[fo.getPosition().getHpos() + direction.hoffset][fo.getPosition().getVpos() + direction.voffset];
 		cell.moveObjectTo(fo, otherCell);
 	}
 
+	public Cell findCellBy(Position position) {
+		return cells[position.getHpos()][position.getVpos()];
+	}
 }
 

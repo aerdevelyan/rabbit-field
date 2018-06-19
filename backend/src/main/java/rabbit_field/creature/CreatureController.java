@@ -2,9 +2,6 @@ package rabbit_field.creature;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutionException;
@@ -22,7 +19,6 @@ import com.google.common.eventbus.Subscribe;
 
 import rabbit_field.Field;
 import rabbit_field.Field.Cell;
-import rabbit_field.creature.Action.Move;
 import rabbit_field.creature.MasterMind.PendingProcess;
 import rabbit_field.event.ShutdownEvent;
 
@@ -38,16 +34,16 @@ public class CreatureController {
 	private final BlockingQueue<StatusUpdate> statusUpdates = new LinkedBlockingQueue<>(); 
 	private final ExecutorService mindOutcomeWatchExec = Executors.newSingleThreadExecutor(r -> new Thread(r, "mind outcome taker"));
 	private final ExecutorService updatesExec = Executors.newSingleThreadExecutor(r -> new Thread(r, "updates fulfillment"));
-	private final ActionCompleterTask actionCompleterTask;
+	private final DecidedActionsWatcherTask actionCompleterTask;
 	private final UpdatesFulfillmentTask updatesFulfillmentTask;
 	
 	@Inject
 	public CreatureController(MasterMind masterMind, Field field) {
 //		this.masterMind = masterMind;
 //		this.field = field;
-		actionCompleterTask = new ActionCompleterTask(masterMind.getDecidedActions(), statusUpdates);
-		mindOutcomeWatchExec.execute(actionCompleterTask);
+		actionCompleterTask = new DecidedActionsWatcherTask(masterMind.getDecidedActions(), statusUpdates);
 		updatesFulfillmentTask = new UpdatesFulfillmentTask(statusUpdates, field, masterMind);
+		mindOutcomeWatchExec.execute(actionCompleterTask);
 		updatesExec.execute(updatesFulfillmentTask);
 	}
 	
@@ -86,6 +82,8 @@ class UpdatesFulfillmentTask extends AbstractWatcherTask {
 	protected void watchCycle() {
 		try {
 			StatusUpdate update = statusUpdates.poll(1, SECONDS);
+			if (update == null) return;
+			log.debug("Got creature status update {}", update);
 			switch (update.getStatusType()) {
 			case DECIDED: accomplishAction(update.getCreature(), update.getAction());
 				break;
@@ -104,46 +102,45 @@ class UpdatesFulfillmentTask extends AbstractWatcherTask {
 		}
 		creature.decrementStamina();
 		creature.incrementAge();
+		if (creature.isAlive()) {
+			masterMind.letCreatureThink(creature);
+		}
+		else {
+			log.info("Removing dead creature {}", creature);
+			field.findCellBy(creature.getPosition()).removeObject(creature);
+		}
 	}
 
 	private void addCreature(Creature creature) {
 		Cell freeCell = field.findRandomFreeCell();
 		freeCell.addObject(creature);
-		try {
-			masterMind.letCreatureThink(creature);
-		} catch (MasterMindException e) {
-			accomplishAction(creature, Action.NONE_BY_FAILURE);
-		}
+		masterMind.letCreatureThink(creature);
 	}
-	
-
 }
 
 /** 
  * Takes creature actions from decidedActions queue after delay is done, 
- * notifies the Creature to perform these actions on the Field.
+ * produces and enqueues creature status updates.
  */
-class ActionCompleterTask extends AbstractWatcherTask {
+class DecidedActionsWatcherTask extends AbstractWatcherTask {
 	private final static Logger log = LogManager.getLogger();
 	private final DelayQueue<PendingProcess> decidedActions;
 	private final BlockingQueue<StatusUpdate> statusUpdates;
 	
-	public ActionCompleterTask(DelayQueue<PendingProcess> decidedActions, BlockingQueue<StatusUpdate> statusUpdates) {
+	public DecidedActionsWatcherTask(DelayQueue<PendingProcess> decidedActions, BlockingQueue<StatusUpdate> statusUpdates) {
 		this.decidedActions = decidedActions;
 		this.statusUpdates = statusUpdates;
 	}
 
-	@Override protected void watchCycle() {			
+	@Override protected void watchCycle() {		
 		try {
 			log.debug("Examining decided actions queue.");
 			PendingProcess process = decidedActions.poll(1, SECONDS);
 			if (process == null) return;
 			if (process.futureAction.isCancelled()) {
-//				process.creature.actionIsDecided(Action.NONE_BY_CANCEL);
 				statusUpdates.put(new StatusUpdate(StatusType.DECIDED, process.creature, Action.NONE_BY_CANCEL));
 			}
 			else {
-//				process.creature.actionIsDecided(process.futureAction.get());
 				statusUpdates.put(new StatusUpdate(StatusType.DECIDED, process.creature, process.futureAction.get()));
 			}
 		} catch (InterruptedException e) {
@@ -180,6 +177,11 @@ class StatusUpdate {
 
 	public Action getAction() {
 		return action;
-	}		
+	}
+
+	@Override
+	public String toString() {
+		return "StatusUpdate [statusType=" + statusType + ", creature=" + creature + ", action=" + action + "]";
+	}
 }
 

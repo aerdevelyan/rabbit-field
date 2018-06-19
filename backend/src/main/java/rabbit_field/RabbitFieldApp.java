@@ -10,6 +10,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import rabbit_field.creature.CreatureController;
 import rabbit_field.creature.MasterMind;
 import rabbit_field.ui.WebServer;
 
@@ -50,7 +51,7 @@ public class RabbitFieldApp {
     
     private void registerSubscribers() {
     	eventBus.register(injector.getInstance(MasterMind.class));
-    	
+    	eventBus.register(injector.getInstance(CreatureController.class));
     }
 
 	public Injector getInjector() {

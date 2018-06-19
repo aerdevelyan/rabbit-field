@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutorService;
@@ -23,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.eventbus.Subscribe;
 
+import rabbit_field.creature.MasterMind.PendingProcess;
 import rabbit_field.creature.MasterMindException.FailureType;
 import rabbit_field.event.ShutdownEvent;
 
@@ -167,13 +169,19 @@ public class MasterMind {
 		processWatchExec.execute(processWatcherTask);
 	}
 
-	public void letCreatureThink(Creature creature) throws MasterMindException {
+	public boolean letCreatureThink(Creature creature) {
 		try {
 			enqueue(new MindProcessTask(creature));
 		} catch (Exception e) {
-			log.warn("Error trying to enqueue a MindProcessTask", e);
-			throw new MasterMindException("Failed to enqueue mind process", e, FailureType.ENQUEUING);
+			log.error("Error trying to enqueue a MindProcessTask for {}", creature, e);
+			PendingProcess pp = new PendingProcess(creature, 
+					CompletableFuture.completedFuture(Action.NONE_BY_FAILURE), 
+					System.currentTimeMillis());
+			decidedActions.put(pp);
+			return false;
 		}
+		return true;
+//		throw new MasterMindException("Failed to enqueue mind process", e, FailureType.ENQUEUING);
 	}
 
 	public DelayQueue<PendingProcess> getDecidedActions() {

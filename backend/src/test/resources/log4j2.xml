@@ -6,11 +6,11 @@
 		</Console>
 	</Appenders>
 	<Loggers>
-		<Root level="info">
+		<Root level="error">
 			<AppenderRef ref="Console" />
 		</Root>
-		<Logger name="rabbit_field.creature.Rabbit" additivity="false" level="debug">
-			<AppenderRef ref="Console" />
-		</Logger>
+<!-- 		<Logger name="rabbit_field.creature.Rabbit" additivity="false" level="debug"> -->
+<!-- 			<AppenderRef ref="Console" /> -->
+<!-- 		</Logger> -->
 	</Loggers>
 </Configuration>
