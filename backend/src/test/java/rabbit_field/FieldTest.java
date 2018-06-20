@@ -10,12 +10,12 @@ import rabbit_field.Field.Position;
 import rabbit_field.creature.Rabbit;
 
 public class FieldTest {
+	Field field = new Field();
+	FieldObject fo = new Rabbit("test_fo", field);
 
 	@Test
 	public void objectMove() {
-		Field field = new Field();
-		FieldObject fo = new Rabbit("test_fo", field);
-		Cell cell = field.findRandomFreeCell();
+		Cell cell = field.findCellBy(new Position(0, 0));
 		assertThat(cell.getObjects().size()).isZero();
 		cell.addObject(fo);
 		assertThat(cell.getObjects().size()).isEqualTo(1);
@@ -33,4 +33,25 @@ public class FieldTest {
 		field.move(fo, Direction.NORTH);
 		assertThat(fo.getPosition()).isEqualTo(orig);
 	}
+	
+	@Test
+	public void objectMoveBeyondBorders() {
+		Cell ltCell = field.findCellBy(new Position(0, 0));
+		ltCell.addObject(fo);
+		assertThat(field.isMoveAllowed(fo.getPosition(), Direction.WEST)).isFalse();
+		boolean moveRes = field.move(fo, Direction.WEST);
+		assertThat(moveRes).isFalse();
+		assertThat(field.isMoveAllowed(fo.getPosition(), Direction.NORTH)).isFalse();
+		moveRes = field.move(fo, Direction.NORTH);
+		assertThat(moveRes).isFalse();
+		Cell rbCell = field.findCellBy(new Position(Field.HOR_SIZE - 1, Field.VERT_SIZE - 1));
+		ltCell.moveObjectTo(fo, rbCell);
+		assertThat(field.isMoveAllowed(fo.getPosition(), Direction.EAST)).isFalse();
+		moveRes = field.move(fo, Direction.EAST);
+		assertThat(moveRes).isFalse();
+		assertThat(field.isMoveAllowed(fo.getPosition(), Direction.SOUTH)).isFalse();
+		moveRes = field.move(fo, Direction.SOUTH);
+		assertThat(moveRes).isFalse();
+	}
+	
 }

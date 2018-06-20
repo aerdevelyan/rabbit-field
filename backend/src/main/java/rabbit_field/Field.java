@@ -8,6 +8,7 @@ import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Singleton;
 
+import rabbit_field.Field.Position;
 import rabbit_field.creature.CreatureController;
 
 @Singleton
@@ -17,6 +18,9 @@ public class Field {
 		private final int hpos, vpos;
 		
 		public Position(int hpos, int vpos) {
+			if (!isValid(hpos, vpos)) {
+				throw new IllegalArgumentException("Passed coordinates are invalid: " + hpos + ", " + vpos);
+			}
 			this.hpos = hpos;
 			this.vpos = vpos;
 		}
@@ -29,6 +33,18 @@ public class Field {
 			return vpos;
 		}
 
+		public Position calculateNewPosition(Direction direction) {
+			return new Position(this.getHpos() + direction.hoffset, this.getVpos() + direction.voffset);
+		}
+
+		public static boolean isValid(int hpos, int vpos) {
+			return hpos >= 0 && hpos < HOR_SIZE && vpos >= 0 && vpos < VERT_SIZE;
+		}
+
+		public static boolean isValid(Position position) {
+			return isValid(position.hpos, position.vpos);
+		}
+		
 		@Override
 		public int hashCode() {
 			return (hpos + 1) * (vpos + 1) + hpos;
@@ -59,7 +75,6 @@ public class Field {
 	/**
 	 * Cell is a container for {@link FieldObject}s.
 	 * Thread safety holds only with single writer: {@link CreatureController}.
-	 * TODO exception on unsuccessful add or remove
 	 */ 
 	@ThreadSafe
 	public static class Cell {
@@ -74,18 +89,23 @@ public class Field {
 			return new HashSet<>(objects);
 		}
 		
-		public synchronized void addObject(FieldObject fo) {
+		public synchronized boolean addObject(FieldObject fo) {
+			if (fo.getPosition() != null) {
+				return false;
+			}
 			fo.setPosition(position);
-			objects.add(fo);
+			return objects.add(fo);
 		}
 		
-		public synchronized void removeObject(FieldObject fo) {
-			objects.remove(fo);
+		public synchronized boolean removeObject(FieldObject fo) {
+			fo.setPosition(null);
+			return objects.remove(fo);
 		}
 		
-		public synchronized void moveObjectTo(FieldObject fo, Cell otherCell) {
-			removeObject(fo);
-			otherCell.addObject(fo);
+		public synchronized boolean moveObjectTo(FieldObject fo, Cell otherCell) {
+			boolean remResult = removeObject(fo);
+			boolean addresult = otherCell.addObject(fo);
+			return remResult && addresult;
 		}
 
 		public Position getPosition() {
@@ -143,23 +163,36 @@ public class Field {
 		return freeCell;
 	}
 	
-	public List<FieldObject> whatIsAround(FieldObject obj, int horOffset, int vertOffset) {
-		
-		return null;
+//	public List<FieldObject> whatIsAround(FieldObject obj, int horOffset, int vertOffset) {
+//		
+//		return null;
+//	}
+	
+	public boolean isMoveAllowed(Position position, Direction direction) {
+		return Position.isValid(position.getHpos() + direction.hoffset, position.getVpos() + direction.voffset);
 	}
 	
 	/**
-	 * TODO disallow moving beyond
-	 * @param fo
-	 * @param direction
+	 * Move given FieldObject to a next Cell by provided Direction.
+	 * @param fo - FieldObject to be moved
+	 * @param direction - where to move
+	 * @return true if move was successful
 	 */
-	public void move(FieldObject fo, Direction direction) {
-		Cell cell = cells[fo.getPosition().getHpos()][fo.getPosition().getVpos()];
-		Cell otherCell = cells[fo.getPosition().getHpos() + direction.hoffset][fo.getPosition().getVpos() + direction.voffset];
+	public boolean move(FieldObject fo, Direction direction) {
+		Position fopos = fo.getPosition();
+		if (!isMoveAllowed(fopos, direction)) {
+			return false;
+		}
+		Cell cell = cells[fopos.getHpos()][fopos.getVpos()];
+		Cell otherCell = cells[fopos.getHpos() + direction.hoffset][fopos.getVpos() + direction.voffset];
 		cell.moveObjectTo(fo, otherCell);
+		return true;
 	}
 
 	public Cell findCellBy(Position position) {
+		if (!Position.isValid(position)) {
+			return null;
+		}
 		return cells[position.getHpos()][position.getVpos()];
 	}
 }
