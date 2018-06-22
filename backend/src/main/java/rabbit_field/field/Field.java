@@ -1,6 +1,8 @@
 package rabbit_field.field;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
@@ -8,6 +10,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Singleton;
 
 import rabbit_field.creature.CreatureController;
+import rabbit_field.field.CellView.FOView;
 
 @Singleton
 public class Field {
@@ -29,6 +32,12 @@ public class Field {
 			return new HashSet<>(objects);
 		}
 		
+		public synchronized List<FOView> getObjView() {
+			List<FOView> view = new ArrayList<>(objects.size());
+			objects.forEach(fo -> view.add( CellView.FOMAP.inverse().get(fo.getClass()) ));
+			return view;
+		}
+		
 		public synchronized boolean addObject(FieldObject fo) {
 			if (fo.getPosition() != null) {
 				return false;
@@ -48,6 +57,10 @@ public class Field {
 			return remResult && addresult;
 		}
 
+		public synchronized boolean isEmpty() {
+			return objects.isEmpty();
+		}
+		
 		public Position getPosition() {
 			return position;
 		}
@@ -81,16 +94,7 @@ public class Field {
 	public Field() {
 		initCells();
 	}
-	
-	// create cells and populate the array
-	private void initCells() {
-		for (int hidx = 0; hidx < HOR_SIZE; hidx++) {
-			for (int vidx = 0; vidx < VERT_SIZE; vidx++) {
-				cells[hidx][vidx] = new Cell(hidx, vidx);
-			}
-		}		
-	}
-	
+		
 	public Cell findRandomFreeCell() {
 		Cell freeCell = null;
 		Random rnd = new Random();
@@ -135,6 +139,35 @@ public class Field {
 			return null;
 		}
 		return cells[position.getHpos()][position.getVpos()];
+	}
+	
+	public List<CellView> getView() {
+		List<CellView> view = new ArrayList<>();
+		interateIndexes((hidx, vidx) -> {
+			Cell cell = cells[hidx][vidx];
+			if (!cell.isEmpty()) {
+				view.add(new CellView(cell.getPosition(), cell.getObjView()));
+			}
+		});
+		return view;
+	}
+	
+	@FunctionalInterface
+	private interface IdxConsumer {
+		void accept(int hidx, int vidx);
+	}
+	
+	private void interateIndexes(IdxConsumer ic) {		
+		for (int vidx = 0; vidx < VERT_SIZE; vidx++) {
+			for (int hidx = 0; hidx < HOR_SIZE; hidx++) {
+				ic.accept(hidx, vidx);
+			}
+		}
+	}
+	
+	// create cells and populate the array
+	private void initCells() {
+		interateIndexes((hidx, vidx) -> cells[hidx][vidx] = new Cell(hidx, vidx));
 	}
 }
 
