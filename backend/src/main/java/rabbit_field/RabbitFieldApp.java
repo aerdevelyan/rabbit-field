@@ -29,6 +29,11 @@ public class RabbitFieldApp {
 
 	public static void main(String[] args) {
         log.info("Starting Application");
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+            	log.warn("Shutdown hook");
+            }
+        });
         Injector injector = Guice.createInjector(new MainGuiceModule());
         RabbitFieldApp app = injector.getInstance(RabbitFieldApp.class);
         app.setInjector(injector);

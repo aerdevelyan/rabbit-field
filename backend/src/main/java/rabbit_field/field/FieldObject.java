@@ -1,4 +1,4 @@
-package rabbit_field;
+package rabbit_field.field;
 
 /**
  * Any object living on the field must implement this.

@@ -1,6 +1,6 @@
 package rabbit_field.creature;
 
-import rabbit_field.Field;
+import rabbit_field.field.Field;
 
 /**
  * An action that a creature can perform on the field.

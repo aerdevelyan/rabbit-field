@@ -1,13 +1,14 @@
-package rabbit_field;
+package rabbit_field.field;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
-import rabbit_field.Field.Cell;
-import rabbit_field.Field.Direction;
-import rabbit_field.Field.Position;
 import rabbit_field.creature.Rabbit;
+import rabbit_field.field.Field;
+import rabbit_field.field.Field.Cell;
+import rabbit_field.field.Field.Direction;
+import rabbit_field.field.Field.Position;
 
 public class FieldTest {
 	Field field = new Field();

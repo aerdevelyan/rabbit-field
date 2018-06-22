@@ -6,7 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import rabbit_field.Field;
+import rabbit_field.field.Field;
 
 
 public class CreatureTest {

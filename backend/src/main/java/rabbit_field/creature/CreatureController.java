@@ -17,10 +17,10 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.eventbus.Subscribe;
 
-import rabbit_field.Field;
-import rabbit_field.Field.Cell;
 import rabbit_field.creature.MasterMind.PendingProcess;
 import rabbit_field.event.ShutdownEvent;
+import rabbit_field.field.Field;
+import rabbit_field.field.Field.Cell;
 
 /**
  * Manages creatures.
@@ -98,7 +98,7 @@ class UpdatesFulfillmentTask extends AbstractWatcherTask {
 
 	private void accomplishAction(Creature creature, Action action) {
 		if (action instanceof Action.Move) {
-			field.move(creature, ((Action.Move) action).getDirection());
+			field.move(creature, ((Action.Move) action).getDirection());  // TODO handle false return
 		}
 		creature.decrementStamina();
 		creature.incrementAge();

@@ -6,9 +6,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import rabbit_field.Field;
-import rabbit_field.Field.Direction;
 import rabbit_field.creature.Action.Move;
+import rabbit_field.field.Field;
+import rabbit_field.field.Field.Direction;
 
 public class Rabbit extends Creature {
 	private static Logger log = LogManager.getLogger();

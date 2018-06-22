@@ -3,9 +3,9 @@ package rabbit_field.creature;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import rabbit_field.Field;
-import rabbit_field.Field.Position;
-import rabbit_field.FieldObject;
+import rabbit_field.field.Field;
+import rabbit_field.field.FieldObject;
+import rabbit_field.field.Field.Position;
 
 /**
  * Creature can move across the field and perform actions.

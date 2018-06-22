@@ -18,11 +18,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.junit.Before;
 import org.junit.Test;
 
-import rabbit_field.Field;
-import rabbit_field.Field.Direction;
-import rabbit_field.Field.Position;
-import rabbit_field.FieldObject;
 import rabbit_field.creature.MasterMind.PendingProcess;
+import rabbit_field.field.Field;
+import rabbit_field.field.FieldObject;
+import rabbit_field.field.Field.Direction;
+import rabbit_field.field.Field.Position;
 
 public class CreatureControllerTest {
 	ExecutorService exec = Executors.newCachedThreadPool();

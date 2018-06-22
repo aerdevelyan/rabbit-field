@@ -1,4 +1,4 @@
-package rabbit_field;
+package rabbit_field.field;
 
 import java.util.HashSet;
 import java.util.List;
@@ -8,8 +8,8 @@ import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Singleton;
 
-import rabbit_field.Field.Position;
 import rabbit_field.creature.CreatureController;
+import rabbit_field.field.Field.Position;
 
 @Singleton
 public class Field {
