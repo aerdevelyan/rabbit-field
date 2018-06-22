@@ -5,7 +5,7 @@ package rabbit_field.field;
  */
 public interface FieldObject {
 	
-	Field.Position getPosition();
+	Position getPosition();
 	
-	void setPosition(Field.Position position);
+	void setPosition(Position position);
 }

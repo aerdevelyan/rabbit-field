@@ -21,8 +21,8 @@ import org.junit.Test;
 import rabbit_field.creature.MasterMind.PendingProcess;
 import rabbit_field.field.Field;
 import rabbit_field.field.FieldObject;
+import rabbit_field.field.Position;
 import rabbit_field.field.Field.Direction;
-import rabbit_field.field.Field.Position;
 
 public class CreatureControllerTest {
 	ExecutorService exec = Executors.newCachedThreadPool();
