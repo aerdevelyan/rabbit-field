@@ -1,9 +1,13 @@
 package rabbit_field.ui;
 
+import javax.inject.Inject;
 import javax.servlet.ServletException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import com.google.common.eventbus.Subscribe;
+import com.google.inject.Singleton;
 
 import io.undertow.Handlers;
 import io.undertow.Undertow;
@@ -14,20 +18,30 @@ import io.undertow.servlet.api.DeploymentManager;
 import io.undertow.servlet.api.ServletContainer;
 import io.undertow.websockets.jsr.WebSocketDeploymentInfo;
 import rabbit_field.RabbitFieldApp;
+import rabbit_field.event.ShutdownEvent;
 
+@Singleton
 public class WebServer {
 	private static Logger log = LogManager.getLogger();
 	private Undertow server;
-	
+	private FieldViewSender fieldViewSender;
+
+	@Inject
+	public WebServer(FieldViewSender fieldViewSender) {
+		this.fieldViewSender = fieldViewSender;
+	}
+
 	public void start() {
 		log.info("Starting web server.");
+		
+		WebSocketDeploymentInfo wsdi = new WebSocketDeploymentInfo();
+		wsdi.addEndpoint(WSEndpoint.class);
         DeploymentInfo deploymentInfo = new DeploymentInfo()
                 .setClassLoader(RabbitFieldApp.class.getClassLoader())
                 .setContextPath("/")
                 .addWelcomePage("index.html")
                 .setResourceManager(new ClassPathResourceManager(RabbitFieldApp.class.getClassLoader(), "web"))
-                .addServletContextAttribute(WebSocketDeploymentInfo.ATTRIBUTE_NAME,
-                        new WebSocketDeploymentInfo().addEndpoint(WSEndpoint.class))
+                .addServletContextAttribute(WebSocketDeploymentInfo.ATTRIBUTE_NAME, wsdi)
                 .setDeploymentName("rabbit_field.war");
 
         final ServletContainer container = ServletContainer.Factory.newInstance();
@@ -46,10 +60,16 @@ public class WebServer {
                 .setHandler(pathHandler)
                 .build();
         server.start();
+        fieldViewSender.start();
 	}
 	
 	public void stop() {
 		log.info("Stopping web server.");
 		server.stop();
+	}
+	
+	@Subscribe 
+	public void shutdown(ShutdownEvent evt) {
+		stop();
 	}
 }
