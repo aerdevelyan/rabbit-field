@@ -12,16 +12,16 @@ import rabbit_field.field.Field.Direction;
 
 public class Rabbit extends Creature {
 	private static Logger log = LogManager.getLogger();
-	public static final int MAX_AGE = 100;
-	public static final int INITIAL_STAMINA = 50;
-	public static final float SPEED = 2f;
+	public static final int MAX_AGE = 200;
+	public static final int INITIAL_STAMINA = 100; //TODO 100% of init stamina should be standard (impl in Creature) 
+	public static final float SPEED = 1.5f;
 	
 	/**
 	 * Each rabbit can have a name. TODO move to Creature?
 	 */
 	private String name;
 	
-	public Rabbit(String name, /*MasterMind mind,*/ Field field) {
+	public Rabbit(String name, Field field) {
 		super(field);
 		this.name = name;
 		setStamina(INITIAL_STAMINA);
@@ -54,7 +54,7 @@ public class Rabbit extends Creature {
 
 	@Override
 	public String toString() {
-		return "Rabbit " + name + "(" + getAge() + "/" + getStamina() + ")";
+		return "Rabbit " + name + "(a:" + getAge() + ",s:" + getStamina() + ")";
 	}
 	
 }

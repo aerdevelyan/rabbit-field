@@ -12,6 +12,7 @@ import com.google.inject.Injector;
 
 import rabbit_field.creature.CreatureController;
 import rabbit_field.creature.MasterMind;
+import rabbit_field.ui.FieldViewSender;
 import rabbit_field.ui.WebServer;
 
 @Singleton
@@ -44,19 +45,19 @@ public class RabbitFieldApp {
     public void startApp() {
         registerSubscribers();
         creator.initWorld();
-//        WebServer server = new WebServer();
-//        server.start();
+        WebServer server = injector.getInstance(WebServer.class);
+        server.start();
 
-        Util.sleepSec(10);
+        Util.sleepSec(100);
 
-//        server.stop();
         creator.endWorld();
-    	
     }
     
     private void registerSubscribers() {
     	eventBus.register(injector.getInstance(MasterMind.class));
     	eventBus.register(injector.getInstance(CreatureController.class));
+    	eventBus.register(injector.getInstance(WebServer.class));
+    	eventBus.register(injector.getInstance(FieldViewSender.class));
     }
 
 	public Injector getInjector() {

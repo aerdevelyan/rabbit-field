@@ -47,7 +47,7 @@ public abstract class Creature implements FieldObject {
 			age++;
 		}
 		else {
-			die();
+			die("too old");
 		}
 	}	
 
@@ -56,7 +56,7 @@ public abstract class Creature implements FieldObject {
 			stamina--;
 		}
 		else {
-			die();
+			die("starved");
 		}
 	}
 	
@@ -76,8 +76,8 @@ public abstract class Creature implements FieldObject {
 		return alive;
 	}
 	
-	public void die() {
-		log.info("Creature {} is dead.", this);
+	public void die(String reason) {
+		log.info("Creature {} died, reason: {}.", this, reason);
 		alive = false;
 	}
 

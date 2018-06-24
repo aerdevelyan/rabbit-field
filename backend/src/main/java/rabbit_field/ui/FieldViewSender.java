@@ -5,7 +5,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
+import javax.json.bind.JsonbConfig;
 import javax.websocket.Session;
 
 import org.apache.logging.log4j.LogManager;
@@ -14,14 +18,24 @@ import org.apache.logging.log4j.Logger;
 import com.google.common.eventbus.Subscribe;
 
 import rabbit_field.event.ShutdownEvent;
+import rabbit_field.field.Field;
 
 @Singleton
 public class FieldViewSender implements Runnable {
 	private final static Logger log = LogManager.getLogger();
 	private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-	private long prevTime;
+	private final Field field;
+	private final Jsonb jsonb;
 	
-	public FieldViewSender() {
+	@Inject
+	public FieldViewSender(Field field) {
+		this.field = field;
+		jsonb = initJsonb();
+	}
+
+	private Jsonb initJsonb() {
+		JsonbConfig config = new JsonbConfig();
+		return JsonbBuilder.create(config);
 	}
 
 	@Override
@@ -29,9 +43,9 @@ public class FieldViewSender implements Runnable {
 		try {
 			Session session = WSEndpoint.session;
 			if (session != null && session.isOpen()) {
-				session.getBasicRemote().sendText("time: " + (System.currentTimeMillis() - prevTime));
+				String json = jsonb.toJson(field.getView());
+				session.getBasicRemote().sendText(json);
 			}
-			prevTime = System.currentTimeMillis();
 		} catch (IOException e) {
 			log.error("Error while sending data", e);
 		}
