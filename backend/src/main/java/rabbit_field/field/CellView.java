@@ -7,6 +7,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.EnumHashBiMap;
 
 import rabbit_field.creature.Rabbit;
+import rabbit_field.msg.CodedEnum;
 
 public class CellView {
 	public static final BiMap<FOView, Class<? extends FieldObject>> FOMAP; 
@@ -15,19 +16,26 @@ public class CellView {
 		FOMAP = EnumHashBiMap.create(Map.of(FOView.RABBIT, Rabbit.class));
 	}
 	
-	public static enum FOView {
+	public static enum FOView implements CodedEnum<FOView> {
 		RABBIT("r"), CLOVER("cl"), CARROT("ca");
 		
+		private static final Map<String, FOView> lookupMap = Map.of("r", RABBIT); 
 		private final String code;
 
 		private FOView(String code) {
 			this.code = code;
 		}
 		
+		@Override
 		public String getCode() {
 			return code;
 		}
 		
+		@Override
+		public Map<String, FOView> getLookupMap() {
+			return lookupMap;
+		}
+
 		@Override
 		public String toString() {
 			return code;

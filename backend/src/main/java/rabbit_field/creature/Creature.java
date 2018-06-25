@@ -42,22 +42,30 @@ public abstract class Creature implements FieldObject {
 		this.field = field;
 	}
 	
-	public void incrementAge() {
+	public boolean incrementAge() {
+		if (!isAlive()) {
+			return false;
+		}
 		if (age < getMaxAge()) {
 			age++;
 		}
 		else {
 			die("too old");
 		}
+		return true;
 	}	
 
-	public void decrementStamina() {
+	public boolean decrementStamina() {
+		if (!isAlive()) {
+			return false;
+		}
 		if (stamina > 0) {
 			stamina--;
 		}
 		else {
 			die("starved");
 		}
+		return true;
 	}
 	
 	public int getAge() {

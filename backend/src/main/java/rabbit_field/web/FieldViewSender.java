@@ -19,6 +19,7 @@ import com.google.common.eventbus.Subscribe;
 
 import rabbit_field.event.ShutdownEvent;
 import rabbit_field.field.Field;
+import rabbit_field.msg.FieldViewMsg;
 
 @Singleton
 public class FieldViewSender implements Runnable {
@@ -35,6 +36,7 @@ public class FieldViewSender implements Runnable {
 
 	private Jsonb initJsonb() {
 		JsonbConfig config = new JsonbConfig();
+		config.withAdapters(new FieldViewMsg.CellViewAdapter());
 		return JsonbBuilder.create(config);
 	}
 
@@ -43,7 +45,7 @@ public class FieldViewSender implements Runnable {
 		try {
 			Session session = WSEndpoint.session;
 			if (session != null && session.isOpen()) {
-				String json = jsonb.toJson(field.getView());
+				String json = jsonb.toJson(new FieldViewMsg(field.getView()));
 				session.getBasicRemote().sendText(json);
 			}
 		} catch (IOException e) {
@@ -52,6 +54,7 @@ public class FieldViewSender implements Runnable {
 	}
 
 	public void start() {
+		log.info("Scheduling a field view sender task");
 		executorService.scheduleAtFixedRate(this, 0, 500, TimeUnit.MILLISECONDS);
 	}
 	
@@ -60,3 +63,4 @@ public class FieldViewSender implements Runnable {
 		executorService.shutdown();
 	}
 }
+
