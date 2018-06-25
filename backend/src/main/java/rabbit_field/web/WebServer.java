@@ -1,4 +1,4 @@
-package rabbit_field.ui;
+package rabbit_field.web;
 
 import javax.inject.Inject;
 import javax.servlet.ServletException;

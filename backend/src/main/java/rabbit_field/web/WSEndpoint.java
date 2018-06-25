@@ -1,4 +1,4 @@
-package rabbit_field.ui;
+package rabbit_field.web;
 
 import java.io.IOException;
 
