@@ -86,8 +86,8 @@ public class Field {
 		}		
 	}
 
-	public static final int HOR_SIZE = 50;
-	public static final int VERT_SIZE = 50;
+	public static final int HOR_SIZE = 40;
+	public static final int VERT_SIZE = 25;
 	
 	private final Cell[][] cells = new Cell[HOR_SIZE][VERT_SIZE];
 	

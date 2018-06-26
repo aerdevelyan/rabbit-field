@@ -11,7 +11,6 @@ body {
 	font-size: 12px;
 }
 
-
 #header {
 	height: 100px;
 	background-color: #477e5e;
@@ -23,14 +22,26 @@ body {
 	background-color: #f2f4f2;
 }
 
-h1 {
+h1, h2 {
 	text-align: center; 
 }
 
-.myclass {
-	margin: 0;
+table.field {
+	border-style: solid;
+	border-width: 1px;
+	border-color: gray;
+	border-collapse: collapse;
 }
 
-/* .product-card div { */
-/* 	/*border: black 1px solid ;*/ */
-/* } */
+.field tr {
+	height: 32px;
+}
+
+.field td {
+	height: 32px;
+	width: 32px;
+	background-color: green;
+	border-style: solid;
+	border-width: 1px;
+	border-color: gray;
+}
