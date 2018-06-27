@@ -10,7 +10,8 @@
 	<name>Rabbit field Simulator Game</name>
 
 	<modules>
-		<module>backend</module>
+		<!-- Web UI module should be built first, it is included into the jar of backend -->
 		<module>webui</module>
+		<module>backend</module>
 	</modules>
 </project>

@@ -46,8 +46,8 @@ public class RabbitFieldApp {
         registerSubscribers();
         WebServer server = injector.getInstance(WebServer.class);
         server.start();
-
         creator.initWorld();
+        log.info("Initialization complete, point your browser to http://localhost:{}", WebServer.PORT);
         Util.sleepSec(100);
 
         creator.endWorld();

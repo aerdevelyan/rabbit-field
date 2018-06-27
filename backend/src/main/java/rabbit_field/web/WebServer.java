@@ -22,6 +22,7 @@ import rabbit_field.event.ShutdownEvent;
 
 @Singleton
 public class WebServer {
+	public static int PORT = 8080;
 	private static Logger log = LogManager.getLogger();
 	private Undertow server;
 	private FieldViewSender fieldViewSender;
@@ -40,7 +41,7 @@ public class WebServer {
                 .setClassLoader(RabbitFieldApp.class.getClassLoader())
                 .setContextPath("/")
                 .addWelcomePage("index.html")
-                .setResourceManager(new ClassPathResourceManager(RabbitFieldApp.class.getClassLoader(), "web"))
+                .setResourceManager(new ClassPathResourceManager(RabbitFieldApp.class.getClassLoader(), "webui"))
                 .addServletContextAttribute(WebSocketDeploymentInfo.ATTRIBUTE_NAME, wsdi)
                 .setDeploymentName("rabbit_field.war");
 
@@ -56,7 +57,7 @@ public class WebServer {
         }
         
         server = Undertow.builder()
-                .addHttpListener(8080, "localhost")
+                .addHttpListener(PORT, "localhost")
                 .setHandler(pathHandler)
                 .build();
         server.start();
