@@ -3,7 +3,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     mode: 'development',
-	entry: './src/main/js/app.js',	
+	entry: './src/main/js/AppMain.js',	
 	output: {
 		filename: 'bundle.js',
 		path: path.resolve(__dirname, 'target/dist')

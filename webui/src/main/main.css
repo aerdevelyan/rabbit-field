@@ -29,7 +29,7 @@ h1, h2 {
 table.field {
 	border-style: solid;
 	border-width: 1px;
-	border-color: gray;
+	border-color: #808080;
 	border-collapse: collapse;
 }
 
@@ -40,8 +40,12 @@ table.field {
 .field td {
 	height: 32px;
 	width: 32px;
-	background-color: green;
+	background-color: #12b431;
 	border-style: solid;
 	border-width: 1px;
-	border-color: gray;
+	border-color: #808080;
+}
+
+.field img {
+	display: block;
 }

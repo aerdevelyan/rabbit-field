@@ -2,7 +2,7 @@ import _ from 'lodash';
 import FieldModel from './FieldModel';
 
 /**
- * rabbits app
+ * Main application class.
  */
 export default class AppMain  {
     
@@ -13,7 +13,7 @@ export default class AppMain  {
     
     start() {
         console.log("Starting application.");
-        this.fieldModel.initCells();
+        this.fieldModel.initCellsAndTable();
         this.connectWS();
     }
     
@@ -45,4 +45,5 @@ export default class AppMain  {
     }
 }
 
+// make it available on the web page 
 window.AppMain = AppMain;
