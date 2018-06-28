@@ -32,7 +32,6 @@ public class WSEndpoint {
 	@OnMessage
 	public void msgHandler(String msg, Session session) throws IOException {
 		log.info("recieved: " + msg);
-		session.getBasicRemote().sendText("ack from server, got your msg");
 	}
 	
 	@OnError

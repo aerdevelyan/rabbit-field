@@ -14,7 +14,7 @@ public class Rabbit extends Creature {
 	private static Logger log = LogManager.getLogger();
 	public static final int MAX_AGE = 200;
 	public static final int INITIAL_STAMINA = 100; //TODO 100% of init stamina should be standard (impl in Creature) 
-	public static final float SPEED = 1.5f;
+	public static final float SPEED = 2.0f;
 	
 	/**
 	 * Each rabbit can have a name. TODO move to Creature?
@@ -39,18 +39,25 @@ public class Rabbit extends Creature {
 
 	@Override
 	public Action decideAction() {
-		Random rnd = new Random();
-		Action action = new Action.Move(Field.Direction.values()[rnd.nextInt(3)]);
-		try {
-			log.debug(name + " thinking...");
-			TimeUnit.MILLISECONDS.sleep(150 + rnd.nextInt(50));
-		} catch (InterruptedException e) {
-			log.warn("Got interrupted");
-		}
-		log.debug(name + " decided: " + action);
+		long start = System.currentTimeMillis();
+		Action action = new Action.Move(chooseRandomDirection());
+//		try {
+//			TimeUnit.MILLISECONDS.sleep(new Random().nextInt(150));
+//		} catch (InterruptedException e) {
+//			log.warn("Got interrupted {}", this);
+//		}
+		log.debug("{} thinked {}ms, decided to: {}", name, (System.currentTimeMillis() - start), action);
 		return action;
 	}
 
+	private Direction chooseRandomDirection() {
+		Direction direction;
+		do {
+			direction = Direction.values()[new Random().nextInt(Direction.values().length)];
+		} 
+		while (!getField().isMoveAllowed(this.getPosition(), direction));
+		return direction;
+	}
 
 	@Override
 	public String toString() {

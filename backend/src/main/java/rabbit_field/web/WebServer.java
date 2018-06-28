@@ -22,7 +22,7 @@ import rabbit_field.event.ShutdownEvent;
 
 @Singleton
 public class WebServer {
-	public static int PORT = 8080;
+	public static final int PORT = 8080;
 	private static Logger log = LogManager.getLogger();
 	private Undertow server;
 	private FieldViewSender fieldViewSender;

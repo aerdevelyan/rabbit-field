@@ -16,16 +16,7 @@ export default class AppMain  {
         this.fieldModel.initCellsAndTable();
         this.connectWS();
     }
-    
-	/**
-	 * just a func
-	 * @param {numeric} p1 parameter one
-	 * @returns {String}
-	 */
-	fn1(p1) {
-		return "fn1 called with " + p1;
-	}
-	
+    	
     connectWS() {
         // Create WebSocket connection.
         const socket = new WebSocket('ws://localhost:8080/ws');

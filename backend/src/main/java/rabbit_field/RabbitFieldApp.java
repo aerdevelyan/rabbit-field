@@ -48,7 +48,7 @@ public class RabbitFieldApp {
         server.start();
         creator.initWorld();
         log.info("Initialization complete, point your browser to http://localhost:{}", WebServer.PORT);
-        Util.sleepSec(100);
+        Util.sleepSec(60);
 
         creator.endWorld();
     }
