@@ -1,30 +1,20 @@
 package rabbit_field.creature;
 
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import rabbit_field.creature.Action.Move;
 import rabbit_field.field.Field;
 import rabbit_field.field.Field.Direction;
 
 public class Rabbit extends Creature {
 	private static Logger log = LogManager.getLogger();
-	public static final int MAX_AGE = 200;
-	public static final int INITIAL_STAMINA = 100; //TODO 100% of init stamina should be standard (impl in Creature) 
+	public static final int MAX_AGE = 200; 
 	public static final float SPEED = 2.0f;
 	
-	/**
-	 * Each rabbit can have a name. TODO move to Creature?
-	 */
-	private String name;
-	
 	public Rabbit(String name, Field field) {
-		super(field);
-		this.name = name;
-		setStamina(INITIAL_STAMINA);
+		super(name, field);
 	}
 
 	@Override
@@ -46,7 +36,7 @@ public class Rabbit extends Creature {
 //		} catch (InterruptedException e) {
 //			log.warn("Got interrupted {}", this);
 //		}
-		log.debug("{} thinked {}ms, decided to: {}", name, (System.currentTimeMillis() - start), action);
+		log.debug("{} thinked {}ms, decided to: {}", getName(), (System.currentTimeMillis() - start), action);
 		return action;
 	}
 
@@ -61,7 +51,7 @@ public class Rabbit extends Creature {
 
 	@Override
 	public String toString() {
-		return "Rabbit " + name + "(a:" + getAge() + ",s:" + getStamina() + ")";
+		return "Rabbit " + getName() + "(a:" + getAge() + ",s:" + getStamina() + ")";
 	}
 	
 }

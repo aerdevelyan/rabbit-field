@@ -24,13 +24,14 @@ import rabbit_field.field.Field.Cell;
 
 /**
  * Manages creatures.
- *  
+ * Logic of life cycle:
+ * - take Action objects from MasterMind via decidedActions queue
+ * - perform an action on behalf of a Creature
+ * - enqueue Creature to MasterMind again
  */
 @Singleton
 public class CreatureController {
 	private final static Logger log = LogManager.getLogger();
-//	private final MasterMind masterMind;
-//	private final Field field;
 	private final BlockingQueue<StatusUpdate> statusUpdates = new LinkedBlockingQueue<>(); 
 	private final ExecutorService mindOutcomeWatchExec = Executors.newSingleThreadExecutor(r -> new Thread(r, "mind outcome taker"));
 	private final ExecutorService updatesExec = Executors.newSingleThreadExecutor(r -> new Thread(r, "updates fulfillment"));
@@ -39,8 +40,6 @@ public class CreatureController {
 	
 	@Inject
 	public CreatureController(MasterMind masterMind, Field field) {
-//		this.masterMind = masterMind;
-//		this.field = field;
 		actionCompleterTask = new DecidedActionsWatcherTask(masterMind.getDecidedActions(), statusUpdates);
 		updatesFulfillmentTask = new UpdatesFulfillmentTask(statusUpdates, field, masterMind);
 		mindOutcomeWatchExec.execute(actionCompleterTask);
@@ -144,7 +143,7 @@ class DecidedActionsWatcherTask extends AbstractWatcherTask {
 				statusUpdates.put(new StatusUpdate(StatusType.DECIDED, process.creature, process.futureAction.get()));
 			}
 		} catch (InterruptedException e) {
-			log.debug("ActionCompleter was interrupted.", e);
+			log.debug("DecidedActionsWatcherTask was interrupted.", e);
 			Thread.currentThread().interrupt();
 		} catch (ExecutionException e) {
 			log.warn("Exception during thinking on Action.", e);

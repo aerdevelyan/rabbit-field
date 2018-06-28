@@ -1,6 +1,7 @@
 package rabbit_field.creature;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -15,8 +16,7 @@ public class CreatureTest {
 	
 	@Before
 	public void setup() {
-		creature = new Creature(field) {
-			
+		creature = new Creature("testcr", field) {
 			@Override public float getSpeed() {
 				return 1f;
 			}
@@ -55,5 +55,18 @@ public class CreatureTest {
 		creature.decrementStamina();
 		assertThat(creature.isAlive()).isFalse();
 		assertThat(creature.getStamina()).isEqualTo(0);
+	}
+	
+	@Test
+	public void staminaBoost() throws Exception {
+		assertThat(creature.getStamina()).isEqualTo(Creature.MAX_STAMINA);
+		creature.setStamina(1);
+		assertThat(creature.boostStamina(49)).isTrue();
+		assertThat(creature.getStamina()).isEqualTo(50);
+		creature.boostStamina(200);
+		assertThat(creature.getStamina()).isEqualTo(Creature.MAX_STAMINA);
+		creature.die("test");
+		assertThat(creature.boostStamina(1)).isFalse();
+		assertThat(creature.getStamina()).isZero();
 	}
 }
