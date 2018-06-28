@@ -1,5 +1,7 @@
 import '../main.css';
 import RabbitPng from '../img/rabbit.png';
+import CloverPng from '../img/clover.png';
+import CarrotPng from '../img/carrot.png';
 
 /**
  * Display model for field view data received from server.
@@ -36,7 +38,7 @@ export default class FieldModel {
             });
         }
         this.forEachCellView(fieldViewData, (cv, cell) => {
-            cell.fo = cv.fo;
+            cell.fos = cv.fo;
         });
         this.prevFVData = fieldViewData;
     }
@@ -52,18 +54,18 @@ export default class FieldModel {
 class Cell {
     constructor(container) {
         this.picture;
-        this._fo = [];
+        this._fos = [];
         this.container = container;
     }
     
-    set fo(fo) {
-        this._fo = fo;
-        if (fo.length > 0) {
-            let rabbitIcon = new Image();
-            rabbitIcon.src = RabbitPng;
+    set fos(fos) {
+        this._fos = fos;
+        if (fos.length > 0) {
+            let topFO = this.findTopFO(fos);
+            let foIcon = this.findIconFor(topFO);
             if (this.container.children.length == 0) {
-                this.container.appendChild(rabbitIcon); 
-            }            
+                this.container.appendChild(foIcon); 
+            }
         }
         else {
             while (this.container.firstChild) { 
@@ -73,7 +75,28 @@ class Cell {
     }
     
     clear() {
-        this.fo = [];
+        this.fos = [];
+    }
+    
+    findIconFor(fo) {
+        let icon = new Image();
+        icon.src = iconMap[fo];
+        return icon;
+    }
+    
+    findTopFO(fos) {
+        fos.sort((fo1, fo2) => {
+            return iconPriorityMap[fo2] - iconPriorityMap[fo1];
+        });
+        return fos[0];
     }
 }
+
+const iconMap = {
+    'r': RabbitPng, 'cl': CloverPng, 'ca': CarrotPng
+};
+
+const iconPriorityMap = {
+    'cl': 1, 'ca': 1, 'r': 2, 'f': 3
+};
 

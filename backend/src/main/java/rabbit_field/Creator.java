@@ -12,6 +12,8 @@ import rabbit_field.creature.CreatureController;
 import rabbit_field.creature.Rabbit;
 import rabbit_field.event.ShutdownEvent;
 import rabbit_field.field.Field;
+import rabbit_field.field.Field.Cell;
+import rabbit_field.field.Plant;
 
 /**
  * Creates and initializes the field, creatures and issues commands.
@@ -23,6 +25,7 @@ public class Creator {
 	private final Field field;
 	private final CreatureController creatureController; 
 	private final int INIT_RABBITS = 5;
+	private final int INIT_PLANTS = 50;
 	
 	@Inject
 	public Creator(EventBus eventBus, Field field, CreatureController creatureController) {
@@ -33,12 +36,21 @@ public class Creator {
 
 	public void initWorld() {
 		log.info("Initializing world.");
-		field();
+		plants();
 		creatures();
 	}
 
-	private void field() {
-		
+	private void plants() {
+		for (int n = 1; n <= INIT_PLANTS; n++) {
+			if (n % Plant.Clover.RARITY == 0) {
+				Cell cell = field.findRandomFreeCell();
+				cell.addObject(new Plant.Clover());
+			}
+			if (n % Plant.Carrot.RARITY == 0) {
+				Cell cell = field.findRandomFreeCell();
+				cell.addObject(new Plant.Carrot());
+			}
+		}
 	}
 
 	private void creatures() {
@@ -47,7 +59,6 @@ public class Creator {
 			creatureController.introduce(rabbit);
 		}
 	}
-
 
 	public void endWorld() {
 		log.info("Apocalypse everyone!");

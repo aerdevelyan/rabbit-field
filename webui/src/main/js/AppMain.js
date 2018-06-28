@@ -26,10 +26,10 @@ export default class AppMain  {
             socket.send('Hello Server!');
         });
 
-        let fm = this.fieldModel
         // Listen for messages
+        let fm = this.fieldModel
         socket.addEventListener('message', function(event) {
-            console.log('Message from server ', event.data);
+//            console.log('Message from server ', event.data);
             fm.display(JSON.parse(event.data));
         });
         

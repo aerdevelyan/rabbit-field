@@ -34,7 +34,7 @@ public class Field {
 		
 		public synchronized List<FOView> getObjView() {
 			List<FOView> view = new ArrayList<>(objects.size());
-			objects.forEach(fo -> view.add( CellView.FOMAP.inverse().get(fo.getClass()) ));
+			objects.forEach(fo -> view.add( CellView.FO_VIEW_MAP.inverse().get(fo.getClass()) ));
 			return view;
 		}
 		

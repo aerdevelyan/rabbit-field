@@ -10,14 +10,15 @@ import rabbit_field.creature.Rabbit;
 import rabbit_field.msg.CodedEnum;
 
 public class CellView {
-	public static final BiMap<FOView, Class<? extends FieldObject>> FOMAP; 
+	public static final BiMap<FOView, Class<? extends FieldObject>> FO_VIEW_MAP; 
 	
 	static {
-		FOMAP = EnumHashBiMap.create(Map.of(FOView.RABBIT, Rabbit.class));
+		FO_VIEW_MAP = EnumHashBiMap.create(Map.of(FOView.RABBIT, Rabbit.class, 
+				FOView.CLOVER, Plant.Clover.class, FOView.CARROT, Plant.Carrot.class));
 	}
 	
 	public static enum FOView implements CodedEnum<FOView> {
-		RABBIT("r"), CLOVER("cl"), CARROT("ca");
+		RABBIT("r"), FOX("f"), CLOVER("cl"), CARROT("ca");
 		
 		private static final Map<String, FOView> lookupMap = Map.of("r", RABBIT); 
 		private final String code;
