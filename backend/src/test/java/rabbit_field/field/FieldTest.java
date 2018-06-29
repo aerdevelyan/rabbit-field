@@ -1,19 +1,16 @@
 package rabbit_field.field;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 
 import java.util.List;
 
-import org.assertj.core.api.AbstractListAssert;
-import org.assertj.core.api.ObjectAssert;
 import org.junit.Test;
 
 import rabbit_field.creature.Rabbit;
 import rabbit_field.field.CellView.FOView;
-import rabbit_field.field.Field;
 import rabbit_field.field.Field.Cell;
 import rabbit_field.field.Field.Direction;
+import rabbit_field.field.Field.FieldException;
 
 public class FieldTest {
 	Field field = new Field();
@@ -41,7 +38,7 @@ public class FieldTest {
 	}
 	
 	@Test
-	public void objectMoveBeyondBorders() {
+	public void objectMoveBeyondBorders() throws FieldException {
 		Cell ltCell = field.findCellBy(new Position(0, 0));  // left top
 		ltCell.addObject(fo);
 		assertThat(field.isMoveAllowed(fo.getPosition(), Direction.WEST)).isFalse();
@@ -62,15 +59,17 @@ public class FieldTest {
 	
 	@Test
 	public void createView() throws Exception {
-		FieldObject fo2 = new Rabbit("test_fo2", field); // TODO replace by a plant
-		Cell cell = field.findRandomFreeCell();
-		cell.addObject(fo);
-		cell = field.findRandomFreeCell();
-		cell.addObject(fo2);
+		field.findRandomFreeCell().addObject(fo);
+		FieldObject fo2 = new Plant.Clover();
+		field.findRandomFreeCell().addObject(fo2);
+		FieldObject fo3 = new Plant.Carrot();
+		field.findRandomFreeCell().addObject(fo3);
 		List<CellView> fview = field.getView();
-		assertThat(fview).isNotNull().hasSize(2);
-		assertThat(fview).flatExtracting(CellView::getFobjects).containsExactly(FOView.RABBIT, FOView.RABBIT);
-		assertThat(fview).extracting(CellView::getPosition).doesNotContainNull()
-			.containsExactlyInAnyOrder(fo.getPosition(), fo2.getPosition());
+		assertThat(fview).isNotNull().hasSize(3);
+		assertThat(fview).flatExtracting(CellView::getFobjects).containsExactlyInAnyOrder(
+				FOView.RABBIT, FOView.CLOVER, FOView.CARROT);
+		assertThat(fview).extracting(CellView::getPosition).containsExactlyInAnyOrder(
+				fo.getPosition(), fo2.getPosition(), fo3.getPosition());
 	}
 }
+

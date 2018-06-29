@@ -1,6 +1,9 @@
 package rabbit_field.field;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -9,20 +12,43 @@ import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Singleton;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import rabbit_field.creature.CreatureController;
 import rabbit_field.field.CellView.FOView;
 
 @Singleton
 public class Field {
 	
+	public static class FieldException extends Exception {
+		private static final long serialVersionUID = 1L;
+		private final Cell cell;
+		private final FieldObject fieldObject;
+		
+		public FieldException(String message, Cell cell, FieldObject fieldObject) {
+			super(message);
+			this.cell = cell;
+			this.fieldObject = fieldObject;
+		}
+
+		public Cell getCell() {
+			return cell;
+		}
+		public FieldObject getFieldObject() {
+			return fieldObject;
+		}
+	}
+
 	/**
 	 * Cell is a container for {@link FieldObject}s.
-	 * Thread safety holds only with single writer: {@link CreatureController}.
+	 * Thread safety holds only with single FO mover: {@link CreatureController}.
 	 */ 
 	@ThreadSafe
 	public static class Cell {
 		private final Position position;
 		private final Set<FieldObject> objects = new HashSet<>();
+		private List<FOView> view;
 		
 		public Cell(int hpos, int vpos) {
 			position = new Position(hpos, vpos);
@@ -33,8 +59,6 @@ public class Field {
 		}
 		
 		public synchronized List<FOView> getObjView() {
-			List<FOView> view = new ArrayList<>(objects.size());
-			objects.forEach(fo -> view.add( CellView.FO_VIEW_MAP.inverse().get(fo.getClass()) ));
 			return view;
 		}
 		
@@ -43,18 +67,33 @@ public class Field {
 				return false;
 			}
 			fo.setPosition(position);
-			return objects.add(fo);
+			if (objects.add(fo)) {
+				updateView();
+				return true;
+			}
+			return false; 
 		}
 		
 		public synchronized boolean removeObject(FieldObject fo) {
 			fo.setPosition(null);
-			return objects.remove(fo);
+			if (objects.remove(fo)) {
+				updateView();
+				return true;
+			}
+			return false;
 		}
 		
-		public synchronized boolean moveObjectTo(FieldObject fo, Cell otherCell) {
-			boolean remResult = removeObject(fo);
-			boolean addresult = otherCell.addObject(fo);
-			return remResult && addresult;
+		public synchronized void moveObjectTo(FieldObject fo, Cell otherCell) throws FieldException {
+			boolean rmSuccess = removeObject(fo);
+			if (rmSuccess) {
+				boolean addSuccess = otherCell.addObject(fo);
+				if (!addSuccess) {
+					throw new FieldException("Could not add field object to cell.", otherCell, fo);
+				}
+			}
+			else {
+				throw new FieldException("Could not remove field object from cell.", this, fo);
+			}
 		}
 
 		public synchronized boolean isEmpty() {
@@ -63,6 +102,14 @@ public class Field {
 		
 		public Position getPosition() {
 			return position;
+		}
+		
+		// called on each change of contained objects set
+		private void updateView() {
+			List<FOView> fovList = objects.stream()
+				.map(fo -> CellView.FO_VIEW_MAP.inverse().get(fo.getClass()))
+				.collect(toList());
+			view = Collections.unmodifiableList(fovList);
 		}
 	}
 	
@@ -88,7 +135,7 @@ public class Field {
 
 	public static final int HOR_SIZE = 40;
 	public static final int VERT_SIZE = 25;
-	
+	private final static Logger log = LogManager.getLogger();
 	private final Cell[][] cells = new Cell[HOR_SIZE][VERT_SIZE];
 	
 	public Field() {
@@ -123,14 +170,19 @@ public class Field {
 	 * @param direction - where to move
 	 * @return true if move was successful
 	 */
-	public boolean move(FieldObject fo, Direction direction) {
+	public boolean move(FieldObject fo, Direction direction) { // TODO narrow only to creatures?
 		Position fopos = fo.getPosition();
 		if (!isMoveAllowed(fopos, direction)) {
 			return false;
 		}
 		Cell cell = cells[fopos.getHpos()][fopos.getVpos()];
 		Cell otherCell = cells[fopos.getHpos() + direction.hoffset][fopos.getVpos() + direction.voffset];
-		cell.moveObjectTo(fo, otherCell);
+		try {
+			cell.moveObjectTo(fo, otherCell);
+		} catch (FieldException e) {
+			log.error("Error moving {}.", fo);
+			return false;
+		}
 		return true;
 	}
 
