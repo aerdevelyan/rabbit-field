@@ -9,8 +9,13 @@ Prerequisites:
 - JDK 9+
 - Maven 3+
 
-Build the project using Maven with command: `mvn install`
+Build the project using Maven command: `mvn install`
 
-To run cd into `backend/target` and execute the jar file named `rabbit-field-backend-<VERSION>-jar-with-dependencies.jar`.
+To run `cd` into `backend/target` and execute the jar file named `rabbit-field-backend-<VERSION>-jar-with-dependencies.jar`.
 
 Cmd example: `java -jar rabbit-field-backend-1.0-SNAPSHOT-jar-with-dependencies.jar`.
+
+Then point your browser to http://localhost:8080
+
+To change the port number edit the constant value `rabbit_field.web.WebServer.PORT`.
+

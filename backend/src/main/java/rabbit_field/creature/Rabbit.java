@@ -5,8 +5,11 @@ import java.util.Random;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import rabbit_field.field.CellView.FOView;
 import rabbit_field.field.Field;
 import rabbit_field.field.Field.Direction;
+import rabbit_field.field.FieldObject;
+import rabbit_field.field.Plant;
 
 public class Rabbit extends Creature {
 	private static Logger log = LogManager.getLogger();
@@ -30,7 +33,20 @@ public class Rabbit extends Creature {
 	@Override
 	public Action decideAction() {
 		long start = System.currentTimeMillis();
-		Action action = new Action.Move(chooseRandomDirection());
+		Action action = Action.NONE;
+		Class<? extends FieldObject> food = checkForFood();
+		if (food != null) {
+			action = new Action.Eat(food);
+		}
+		else {
+			Direction direction = chooseRandomDirection();
+			if (direction != null) {
+				action = new Action.Move(direction);
+			}
+			else {
+				log.warn("{} could not find valid direction to move.", this);
+			}
+		}
 //		try {
 //			TimeUnit.MILLISECONDS.sleep(new Random().nextInt(150));
 //		} catch (InterruptedException e) {
@@ -40,9 +56,21 @@ public class Rabbit extends Creature {
 		return action;
 	}
 
+	private Class<? extends FieldObject> checkForFood() {
+		for (FOView fov : getField().getViewAt(getPosition())) {
+			if (Plant.class.isAssignableFrom(fov.getOriginalClass())) {
+				log.debug("{} found a plant: {}", this, fov.name());
+				return fov.getOriginalClass();
+			}
+		}
+		return null;
+	}
+	
 	private Direction chooseRandomDirection() {
-		Direction direction;
+		int tries = 0;
+		Direction direction = null;
 		do {
+			if (++tries > 100) return null;
 			direction = Direction.values()[new Random().nextInt(Direction.values().length)];
 		} 
 		while (!getField().isMoveAllowed(this.getPosition(), direction));
@@ -52,6 +80,11 @@ public class Rabbit extends Creature {
 	@Override
 	public String toString() {
 		return "Rabbit " + getName() + "(a:" + getAge() + ",s:" + getStamina() + ")";
+	}
+
+	@Override
+	public int calories() {
+		return 20;
 	}
 	
 }

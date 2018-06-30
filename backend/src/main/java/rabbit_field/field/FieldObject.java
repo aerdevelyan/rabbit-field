@@ -8,4 +8,6 @@ public interface FieldObject {
 	Position getPosition();
 	
 	void setPosition(Position position);
+	
+	int calories();
 }

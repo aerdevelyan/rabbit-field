@@ -20,9 +20,11 @@ import org.junit.Test;
 
 import rabbit_field.creature.MasterMind.PendingProcess;
 import rabbit_field.field.Field;
-import rabbit_field.field.FieldObject;
-import rabbit_field.field.Position;
+import rabbit_field.field.Field.Cell;
 import rabbit_field.field.Field.Direction;
+import rabbit_field.field.FieldObject;
+import rabbit_field.field.Plant;
+import rabbit_field.field.Position;
 
 public class CreatureControllerTest {
 	ExecutorService exec = Executors.newCachedThreadPool();
@@ -68,9 +70,9 @@ public class CreatureControllerTest {
 	}
 	
 	@Test
-	public void updateFulfillment_AccomplishAction() throws Exception {
+	public void updateFulfillment_AccomplishActionMove() throws Exception {
 		Field field = new Field();
-		creature = new Rabbit("test_cr", field);
+		creature = new Rabbit("test_rabbit", field);
 		field.findCellBy(new Position(0, 0)).addObject(creature);
 		Position origPosition = creature.getPosition();
 		int origAge = creature.getAge();
@@ -85,4 +87,24 @@ public class CreatureControllerTest {
 		verify(masterMind).letCreatureThink(creature);
 	}
 	
+	@Test
+	public void updateFulfillment_AccomplishActionEat() throws Exception {
+		Field field = new Field();
+		Cell cell = field.findCellBy(new Position(0, 0));
+		creature = new Rabbit("test_rabbit", field);
+		creature.setStamina(1);
+		int origAge = creature.getAge();
+		Plant plant = new Plant.Carrot();
+		cell.addObject(creature);
+		cell.addObject(plant);
+		statusUpdates.add(new StatusUpdate(StatusType.DECIDED, creature, new Action.Eat(Plant.Carrot.class)));
+		UpdatesFulfillmentTask uft = new UpdatesFulfillmentTask(statusUpdates, field, masterMind);
+		uft.shutdown();
+		uft.run();
+		assertThat(cell.getObjects()).doesNotContain(plant);
+		assertThat(creature.getStamina()).isEqualTo(1 + Plant.Carrot.CALORIES);
+		assertThat(creature.getAge()).isEqualTo(origAge + 1);
+		verify(masterMind).letCreatureThink(creature);
+	}
 }
+

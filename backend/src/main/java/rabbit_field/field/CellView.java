@@ -27,6 +27,10 @@ public class CellView {
 			this.code = code;
 		}
 		
+		public Class<? extends FieldObject> getOriginalClass() {
+			return FO_VIEW_MAP.get(this);
+		}
+		
 		@Override
 		public String getCode() {
 			return code;

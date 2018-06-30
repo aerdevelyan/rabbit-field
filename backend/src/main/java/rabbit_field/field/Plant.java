@@ -12,7 +12,7 @@ public abstract class Plant implements FieldObject {
 		@Override
 		public int rarity() {
 			return RARITY;
-		} 
+		}
 	}
 
 	public static class Carrot extends Plant {
@@ -24,10 +24,8 @@ public abstract class Plant implements FieldObject {
 		@Override
 		public int rarity() {
 			return RARITY;
-		} 
+		}
 	}
-	
-	public abstract int calories();
 	
 	public abstract int rarity();
 	

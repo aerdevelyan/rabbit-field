@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 
@@ -48,7 +49,7 @@ public class Field {
 	public static class Cell {
 		private final Position position;
 		private final Set<FieldObject> objects = new HashSet<>();
-		private List<FOView> view;
+		private List<FOView> fovList;
 		
 		public Cell(int hpos, int vpos) {
 			position = new Position(hpos, vpos);
@@ -59,7 +60,7 @@ public class Field {
 		}
 		
 		public synchronized List<FOView> getObjView() {
-			return view;
+			return Collections.unmodifiableList(fovList);
 		}
 		
 		public synchronized boolean addObject(FieldObject fo) {
@@ -104,12 +105,17 @@ public class Field {
 			return position;
 		}
 		
+		public Optional<FieldObject> findFirstByClass(Class<? extends FieldObject> foClass) {
+			return objects.stream()
+					.filter(fo -> foClass.isInstance(fo))
+					.findFirst();
+		}
+
 		// called on each change of contained objects set
 		private void updateView() {
-			List<FOView> fovList = objects.stream()
+			fovList = objects.stream()
 				.map(fo -> CellView.FO_VIEW_MAP.inverse().get(fo.getClass()))
 				.collect(toList());
-			view = Collections.unmodifiableList(fovList);
 		}
 	}
 	
@@ -186,6 +192,11 @@ public class Field {
 		return true;
 	}
 
+	public void removeAt(Position position, Class<? extends FieldObject> foClass) {
+		Cell cell = findCellBy(position);
+		cell.findFirstByClass(foClass).ifPresent(fo -> cell.removeObject(fo)); // TODO what if not found?
+	}
+	
 	public Cell findCellBy(Position position) {
 		if (!Position.isValid(position)) {
 			return null;
@@ -193,6 +204,10 @@ public class Field {
 		return cells[position.getHpos()][position.getVpos()];
 	}
 	
+	/**
+	 * TODO optimize
+	 * @return
+	 */
 	public List<CellView> getView() {
 		List<CellView> view = new ArrayList<>();
 		interateIndexes((hidx, vidx) -> {
@@ -202,6 +217,10 @@ public class Field {
 			}
 		});
 		return view;
+	}
+	
+	public List<FOView> getViewAt(Position position) {
+		return findCellBy(position).getObjView();
 	}
 	
 	@FunctionalInterface

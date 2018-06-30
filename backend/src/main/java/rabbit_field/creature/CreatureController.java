@@ -21,6 +21,7 @@ import rabbit_field.creature.MasterMind.PendingProcess;
 import rabbit_field.event.ShutdownEvent;
 import rabbit_field.field.Field;
 import rabbit_field.field.Field.Cell;
+import rabbit_field.field.FieldObject;
 
 /**
  * Manages creatures.
@@ -98,8 +99,21 @@ class UpdatesFulfillmentTask extends AbstractWatcherTask {
 	private void accomplishAction(Creature creature, Action action) {
 		if (action instanceof Action.Move) {
 			field.move(creature, ((Action.Move) action).getDirection());  // TODO handle false return
+			creature.decrementStamina();
 		}
-		creature.decrementStamina();
+		else if (action instanceof Action.Eat) {
+			Action.Eat eat = (Action.Eat) action;
+			if (Action.Eat.canEat(creature.getClass(), eat.getDesiredObject())) {
+				Cell cell = field.findCellBy(creature.getPosition());
+				FieldObject fo = cell.findFirstByClass(eat.getDesiredObject()).get();
+				creature.boostStamina(fo.calories());
+				cell.removeObject(fo);
+				log.debug("{} ate {}", creature, fo);
+			}
+			else {
+				log.error("Creature {} cannot eat {}", creature, eat.getDesiredObject());
+			}
+		}
 		creature.incrementAge();
 		if (creature.isAlive()) {
 			masterMind.letCreatureThink(creature);
