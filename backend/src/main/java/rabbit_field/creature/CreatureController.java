@@ -2,6 +2,7 @@ package rabbit_field.creature;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutionException;
@@ -14,14 +15,16 @@ import javax.inject.Singleton;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
 
 import com.google.common.eventbus.Subscribe;
 
 import rabbit_field.creature.MasterMind.PendingProcess;
 import rabbit_field.event.ShutdownEvent;
+import rabbit_field.field.CellView.FOView;
 import rabbit_field.field.Field;
 import rabbit_field.field.Field.Cell;
-import rabbit_field.field.FieldObject;
 
 /**
  * Manages creatures.
@@ -68,6 +71,7 @@ public class CreatureController {
 
 class UpdatesFulfillmentTask extends AbstractWatcherTask {
 	private final static Logger log = LogManager.getLogger();
+	private static final Marker ACT_MARKER = MarkerManager.getMarker("ACT");
 	private final BlockingQueue<StatusUpdate> statusUpdates;
 	private final Field field;
 	private final MasterMind masterMind;
@@ -98,17 +102,26 @@ class UpdatesFulfillmentTask extends AbstractWatcherTask {
 
 	private void accomplishAction(Creature creature, Action action) {
 		if (action instanceof Action.Move) {
+			if (checkRabbitCaught(creature)) {
+				return;
+			}
 			field.move(creature, ((Action.Move) action).getDirection());  // TODO handle false return
 			creature.decrementStamina();
 		}
 		else if (action instanceof Action.Eat) {
 			Action.Eat eat = (Action.Eat) action;
-			if (Action.Eat.canEat(creature.getClass(), eat.getDesiredObject())) {
+			if (creature.canEat(eat.getDesiredObject())) {
 				Cell cell = field.findCellBy(creature.getPosition());
-				FieldObject fo = cell.findFirstByClass(eat.getDesiredObject()).get();
-				creature.boostStamina(fo.calories());
-				cell.removeObject(fo);
-				log.debug("{} ate {}", creature, fo);
+				cell.findFirstByClass(eat.getDesiredObject()).ifPresentOrElse(eaten -> {
+					if (Creature.class.isInstance(eaten)) {
+						((Creature) eaten).die("was eaten");
+					}
+					creature.boostStamina(eaten.calories());
+					cell.removeObject(eaten);
+					log.debug(ACT_MARKER, "{} ate {}", creature, eaten);					
+				}, () -> {  
+					log.warn(ACT_MARKER, "{} could not eat desired object: not found in the cell.", creature);
+				});
 			}
 			else {
 				log.error("Creature {} cannot eat {}", creature, eat.getDesiredObject());
@@ -122,6 +135,17 @@ class UpdatesFulfillmentTask extends AbstractWatcherTask {
 			log.info("Removing dead creature {}", creature);
 			field.findCellBy(creature.getPosition()).removeObject(creature);
 		}
+	}
+
+	private boolean checkRabbitCaught(Creature creature) {
+		if (Rabbit.class.isInstance(creature)) {
+			List<FOView> view = field.getViewAt(creature.getPosition());
+			if (view.contains(FOView.FOX)) {
+				log.debug(ACT_MARKER, "{} got caught by a fox, cannot move.", creature);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void addCreature(Creature creature) {

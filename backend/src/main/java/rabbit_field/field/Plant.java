@@ -13,6 +13,10 @@ public abstract class Plant implements FieldObject {
 		public int rarity() {
 			return RARITY;
 		}
+		@Override
+		public String toString() {
+			return "Clover";
+		}
 	}
 
 	public static class Carrot extends Plant {
@@ -24,6 +28,10 @@ public abstract class Plant implements FieldObject {
 		@Override
 		public int rarity() {
 			return RARITY;
+		}
+		@Override
+		public String toString() {
+			return "Carrot";
 		}
 	}
 	

@@ -3,11 +3,9 @@ package rabbit_field.creature;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import rabbit_field.field.CellView.FOView;
 import rabbit_field.field.Field;
 import rabbit_field.field.Field.Direction;
 import rabbit_field.field.FieldObject;
-import rabbit_field.field.Plant;
 
 public class Rabbit extends Creature {
 	private static Logger log = LogManager.getLogger();
@@ -33,37 +31,25 @@ public class Rabbit extends Creature {
 		long start = System.currentTimeMillis();
 		Action action = Action.NONE;
 		Class<? extends FieldObject> food = checkForFood();
-		if (food != null) {
+		if (food != null && getStamina() < MAX_STAMINA) {
 			action = new Action.Eat(food);
 		}
 		else {
-			Direction direction = chooseRandomDirection();
-			if (direction != null) {
-				action = new Action.Move(direction);
-			}
-			else {
-				log.warn("{} could not find valid direction to move.", this);
-			}
+			action = move();
 		}
-//		try {
-//			TimeUnit.MILLISECONDS.sleep(new Random().nextInt(150));
-//		} catch (InterruptedException e) {
-//			log.warn("Got interrupted {}", this);
-//		}
 		log.debug("{} thinked {}ms, decided to: {}", getName(), (System.currentTimeMillis() - start), action);
 		return action;
 	}
 
-	private Class<? extends FieldObject> checkForFood() {
-		for (FOView fov : getField().getViewAt(getPosition())) {
-			if (Plant.class.isAssignableFrom(fov.getOriginalClass())) {
-				log.debug("{} found a plant: {}", this, fov.name());
-				return fov.getOriginalClass();
-			}
+	private Action move() {
+		Direction direction = chooseRandomDirection();
+		if (direction != null) {
+			return new Action.Move(direction);
 		}
-		return null;
+		log.warn("{} could not find valid direction to move.", this);
+		return Action.NONE;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "Rabbit " + getName() + "(a:" + getAge() + ",s:" + getStamina() + ")";

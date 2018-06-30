@@ -26,8 +26,8 @@ public class Creator {
 	private final EventBus eventBus;
 	private final Field field;
 	private final CreatureController creatureController; 
-	private final int INIT_RABBITS = 5;
-	private final int INIT_FOXES = 2;
+	private final int INIT_RABBITS = 10;
+	private final int INIT_FOXES = 5;
 	private final int INIT_PLANTS = 50;
 	
 	@Inject
@@ -58,11 +58,11 @@ public class Creator {
 
 	private void creatures() {
 		for (int n = 1; n <= INIT_RABBITS; n++) {
-			Creature rabbit = new Rabbit("Rabbit-" + n, field);
+			Creature rabbit = new Rabbit("R-" + n, field);
 			creatureController.introduce(rabbit);
 		}
 		for (int n = 1; n <= INIT_FOXES; n++) {
-			Creature fox = new Fox("Fox-" + n, field);
+			Creature fox = new Fox("F-" + n, field);
 			creatureController.introduce(fox);
 		}
 	}

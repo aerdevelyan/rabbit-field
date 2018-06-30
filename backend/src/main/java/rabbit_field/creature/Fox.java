@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import rabbit_field.field.Field;
+import rabbit_field.field.FieldObject;
 import rabbit_field.field.Field.Direction;
 
 public class Fox extends Creature {
@@ -39,15 +40,24 @@ public class Fox extends Creature {
 	public Action decideAction() {
 		long start = System.currentTimeMillis();
 		Action action = Action.NONE;
-		Direction direction = chooseRandomDirection();
-		if (direction != null) {
-			action = new Action.Move(direction);
+		Class<? extends FieldObject> food = checkForFood();
+		if (food != null && getStamina() < MAX_STAMINA) {
+			action = new Action.Eat(food);
 		}
 		else {
-			log.warn("{} could not find valid direction to move.", this);
+			action = move();
 		}
 		log.debug("{} thinked {}ms, decided to: {}", getName(), (System.currentTimeMillis() - start), action);
 		return action;
+	}
+
+	private Action move() {
+		Direction direction = chooseRandomDirection();
+		if (direction != null) {
+			return new Action.Move(direction);
+		}		
+		log.warn("{} could not find valid direction to move.", this);
+		return Action.NONE;
 	}
 
 }

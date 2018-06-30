@@ -1,13 +1,16 @@
 package rabbit_field.creature;
 
+import java.util.Map;
 import java.util.Random;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import rabbit_field.field.CellView.FOView;
 import rabbit_field.field.Field;
 import rabbit_field.field.Field.Direction;
 import rabbit_field.field.FieldObject;
+import rabbit_field.field.Plant;
 import rabbit_field.field.Position;
 
 /**
@@ -15,6 +18,7 @@ import rabbit_field.field.Position;
  */
 public abstract class Creature implements FieldObject {
 	private static Logger log = LogManager.getLogger();
+	private final Map<Class<? extends Creature>, Class<? extends FieldObject>> CAN_EAT;
 	
 	/**
 	 * Every creature is created with 100% of stamina
@@ -58,6 +62,7 @@ public abstract class Creature implements FieldObject {
 		this.name = name;
 		this.field = field;
 		setStamina(MAX_STAMINA);
+		CAN_EAT = Map.of(Rabbit.class, Plant.class, Fox.class, Rabbit.class);
 	}
 	
 	public int getAge() {
@@ -136,6 +141,10 @@ public abstract class Creature implements FieldObject {
 		return name;
 	}
 	
+	public boolean canEat(Class<? extends FieldObject> desired) {
+		return CAN_EAT.get(this.getClass()).isAssignableFrom(desired);
+	}
+	
 	protected Direction chooseRandomDirection() {
 		int tries = 0;
 		Direction direction = null;
@@ -145,6 +154,16 @@ public abstract class Creature implements FieldObject {
 		} 
 		while (!getField().isMoveAllowed(this.getPosition(), direction));
 		return direction;
+	}
+
+	protected Class<? extends FieldObject> checkForFood() {
+		for (FOView fov : getField().getViewAt(getPosition())) {
+			if (canEat(fov.getOriginalClass())) {
+				log.debug("{} found food: {}", this, fov.name());
+				return fov.getOriginalClass();
+			}
+		}
+		return null;
 	}
 	
 	/**

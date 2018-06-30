@@ -1,14 +1,10 @@
 package rabbit_field.creature;
 
-import java.util.Map;
-
 import rabbit_field.field.Field;
 import rabbit_field.field.FieldObject;
-import rabbit_field.field.Plant;
 
 /**
  * An action that a creature can perform on the field.
- *
  */
 public abstract class Action {
 	public static final None NONE = new None();
@@ -39,11 +35,6 @@ public abstract class Action {
 	
 	
 	public static class Eat extends Action {
-		public static final Map<Class<? extends Creature>, Class<? extends FieldObject>> CAN_EAT;
-		static {
-			CAN_EAT = Map.of(Rabbit.class, Plant.class);
-		}
-		
 		private final Class<? extends FieldObject> desiredObject;
 
 		public Eat(Class<? extends FieldObject> desiredObject) {
@@ -57,10 +48,6 @@ public abstract class Action {
 		@Override
 		public String toString() {
 			return "Eat " + desiredObject.getSimpleName();
-		}
-
-		public static boolean canEat(Class<? extends Creature> creature, Class<? extends FieldObject> desired) {
-			return CAN_EAT.get(creature).isAssignableFrom(desired);
 		}
 	}
 }
