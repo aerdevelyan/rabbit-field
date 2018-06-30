@@ -1,5 +1,6 @@
 import '../main.css';
 import RabbitPng from '../img/rabbit.png';
+import FoxPng from '../img/fox.png';
 import CloverPng from '../img/clover.png';
 import CarrotPng from '../img/carrot.png';
 
@@ -93,7 +94,7 @@ class Cell {
 }
 
 const iconMap = {
-    'r': RabbitPng, 'cl': CloverPng, 'ca': CarrotPng
+    'r': RabbitPng, 'f': FoxPng, 'cl': CloverPng, 'ca': CarrotPng
 };
 
 const iconPriorityMap = {

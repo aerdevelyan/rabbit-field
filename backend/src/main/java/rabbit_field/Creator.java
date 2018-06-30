@@ -8,7 +8,9 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.eventbus.EventBus;
 
+import rabbit_field.creature.Creature;
 import rabbit_field.creature.CreatureController;
+import rabbit_field.creature.Fox;
 import rabbit_field.creature.Rabbit;
 import rabbit_field.event.ShutdownEvent;
 import rabbit_field.field.Field;
@@ -25,6 +27,7 @@ public class Creator {
 	private final Field field;
 	private final CreatureController creatureController; 
 	private final int INIT_RABBITS = 5;
+	private final int INIT_FOXES = 2;
 	private final int INIT_PLANTS = 50;
 	
 	@Inject
@@ -55,8 +58,12 @@ public class Creator {
 
 	private void creatures() {
 		for (int n = 1; n <= INIT_RABBITS; n++) {
-			Rabbit rabbit = new Rabbit("Rabbit-" + n, field);
+			Creature rabbit = new Rabbit("Rabbit-" + n, field);
 			creatureController.introduce(rabbit);
+		}
+		for (int n = 1; n <= INIT_FOXES; n++) {
+			Creature fox = new Fox("Fox-" + n, field);
+			creatureController.introduce(fox);
 		}
 	}
 

@@ -1,9 +1,12 @@
 package rabbit_field.creature;
 
+import java.util.Random;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import rabbit_field.field.Field;
+import rabbit_field.field.Field.Direction;
 import rabbit_field.field.FieldObject;
 import rabbit_field.field.Position;
 
@@ -133,6 +136,17 @@ public abstract class Creature implements FieldObject {
 		return name;
 	}
 	
+	protected Direction chooseRandomDirection() {
+		int tries = 0;
+		Direction direction = null;
+		do {
+			if (++tries > 100) return null;
+			direction = Direction.values()[new Random().nextInt(Direction.values().length)];
+		} 
+		while (!getField().isMoveAllowed(this.getPosition(), direction));
+		return direction;
+	}
+	
 	/**
 	 * For implementations to access the Field.
 	 */
@@ -156,4 +170,5 @@ public abstract class Creature implements FieldObject {
 	 * @return
 	 */
 	public abstract Action decideAction();
+
 }

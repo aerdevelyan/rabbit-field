@@ -1,7 +1,5 @@
 package rabbit_field.creature;
 
-import java.util.Random;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,7 +11,7 @@ import rabbit_field.field.Plant;
 
 public class Rabbit extends Creature {
 	private static Logger log = LogManager.getLogger();
-	public static final int MAX_AGE = 200; 
+	public static final int MAX_AGE = 200;
 	public static final float SPEED = 2.0f;
 	
 	public Rabbit(String name, Field field) {
@@ -66,17 +64,6 @@ public class Rabbit extends Creature {
 		return null;
 	}
 	
-	private Direction chooseRandomDirection() {
-		int tries = 0;
-		Direction direction = null;
-		do {
-			if (++tries > 100) return null;
-			direction = Direction.values()[new Random().nextInt(Direction.values().length)];
-		} 
-		while (!getField().isMoveAllowed(this.getPosition(), direction));
-		return direction;
-	}
-
 	@Override
 	public String toString() {
 		return "Rabbit " + getName() + "(a:" + getAge() + ",s:" + getStamina() + ")";

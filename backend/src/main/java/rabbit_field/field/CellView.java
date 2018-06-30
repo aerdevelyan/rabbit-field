@@ -6,6 +6,7 @@ import java.util.Map;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.EnumHashBiMap;
 
+import rabbit_field.creature.Fox;
 import rabbit_field.creature.Rabbit;
 import rabbit_field.msg.CodedEnum;
 
@@ -13,7 +14,7 @@ public class CellView {
 	public static final BiMap<FOView, Class<? extends FieldObject>> FO_VIEW_MAP; 
 	
 	static {
-		FO_VIEW_MAP = EnumHashBiMap.create(Map.of(FOView.RABBIT, Rabbit.class, 
+		FO_VIEW_MAP = EnumHashBiMap.create(Map.of(FOView.RABBIT, Rabbit.class, FOView.FOX, Fox.class,
 				FOView.CLOVER, Plant.Clover.class, FOView.CARROT, Plant.Carrot.class));
 	}
 	
