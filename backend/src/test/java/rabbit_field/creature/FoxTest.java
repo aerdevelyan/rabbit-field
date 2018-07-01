@@ -24,6 +24,7 @@ public class FoxTest {
 	@Test
 	public void decidesToEat() throws Exception {
 		Fox fox = new Fox("test_fox", field);
+		fox.decrementStamina();	 // make it a little hungry
 		Action action = fox.decideAction();
 		assertThat(action).isExactlyInstanceOf(Action.Eat.class);
 		assertThat(((Action.Eat) action).getDesiredObject()).isEqualTo(FOView.RABBIT.getOriginalClass());

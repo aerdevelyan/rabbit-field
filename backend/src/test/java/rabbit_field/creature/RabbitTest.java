@@ -24,6 +24,7 @@ public class RabbitTest {
 	@Test
 	public void decidesToEat() throws Exception {
 		Rabbit rabbit = new Rabbit("test_rabbit", field);
+		rabbit.decrementStamina();	// make it a little hungry 
 		Action action = rabbit.decideAction();
 		assertThat(action).isExactlyInstanceOf(Action.Eat.class);
 		assertThat(((Action.Eat) action).getDesiredObject()).isEqualTo(FOView.CARROT.getOriginalClass());
