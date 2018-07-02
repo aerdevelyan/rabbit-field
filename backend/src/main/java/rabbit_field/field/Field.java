@@ -205,7 +205,7 @@ public class Field {
 	}
 	
 	/**
-	 * TODO optimize
+	 * TODO optimize: return cached if not changed
 	 * @return
 	 */
 	public List<CellView> getView() {

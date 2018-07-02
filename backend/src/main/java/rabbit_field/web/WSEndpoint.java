@@ -12,6 +12,8 @@ import javax.websocket.server.ServerEndpoint;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import rabbit_field.RabbitFieldApp;
+
 @ServerEndpoint("/ws")
 public class WSEndpoint {
 	private final static Logger log = LogManager.getLogger();
@@ -30,8 +32,10 @@ public class WSEndpoint {
 	}
 	
 	@OnMessage
-	public void msgHandler(String msg, Session session) throws IOException {
+	public void msgHandler(String msg, Session session) {
 		log.info("recieved: " + msg);
+		ClientMsgHandler handler = RabbitFieldApp.injector.getInstance(ClientMsgHandler.class);
+		handler.handleMsg(msg);
 	}
 	
 	@OnError

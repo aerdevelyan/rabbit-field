@@ -21,6 +21,7 @@ import org.apache.logging.log4j.MarkerManager;
 import com.google.common.eventbus.Subscribe;
 
 import rabbit_field.creature.MasterMind.PendingProcess;
+import rabbit_field.event.PauseResumeEvent;
 import rabbit_field.event.ShutdownEvent;
 import rabbit_field.field.CellView.FOView;
 import rabbit_field.field.Field;
@@ -45,7 +46,7 @@ public class CreatureController {
 	@Inject
 	public CreatureController(MasterMind masterMind, Field field) {
 		actionCompleterTask = new DecidedActionsWatcherTask(masterMind.getDecidedActions(), statusUpdates);
-		updatesFulfillmentTask = new UpdatesFulfillmentTask(statusUpdates, field, masterMind);
+		updatesFulfillmentTask = new UpdatesFulfillmentTask(statusUpdates, field, masterMind, true);
 		mindOutcomeWatchExec.execute(actionCompleterTask);
 		updatesExec.execute(updatesFulfillmentTask);
 	}
@@ -67,6 +68,17 @@ public class CreatureController {
 			log.error("Interrupt while waiting for termination of executors", e);
 		}
 	}
+	
+	@Subscribe
+	public void pauseOrResume(PauseResumeEvent evt) {
+		log.info("Received pause/resume event: {}", evt.isPause());
+		if (evt.isPause()) {
+			updatesFulfillmentTask.pause();
+		}
+		else {
+			updatesFulfillmentTask.resume();
+		}
+	}
 }
 
 class UpdatesFulfillmentTask extends AbstractWatcherTask {
@@ -76,7 +88,15 @@ class UpdatesFulfillmentTask extends AbstractWatcherTask {
 	private final Field field;
 	private final MasterMind masterMind;
 	
+	public UpdatesFulfillmentTask(BlockingQueue<StatusUpdate> statusUpdates, Field field, MasterMind masterMind, boolean paused) {
+		super(paused);
+		this.statusUpdates = statusUpdates;
+		this.field = field;
+		this.masterMind = masterMind;
+	}
+	
 	public UpdatesFulfillmentTask(BlockingQueue<StatusUpdate> statusUpdates, Field field, MasterMind masterMind) {
+		super(false);
 		this.statusUpdates = statusUpdates;
 		this.field = field;
 		this.masterMind = masterMind;

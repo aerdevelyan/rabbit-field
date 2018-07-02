@@ -1,5 +1,7 @@
-import _ from 'lodash';
+//import _ from 'lodash';
 import FieldModel from './FieldModel';
+import FieldControls from './FieldControls';
+import WSConnector from './WSConnector';
 
 /**
  * Main application class.
@@ -8,32 +10,22 @@ export default class AppMain  {
     
     constructor() {
         this.fieldModel = new FieldModel();
-        
+        this.fieldControls = new FieldControls();
+        this.wsConnector = new WSConnector();
+        this.setDependencies();
+    }
+    
+    setDependencies() {
+        this.wsConnector.fieldModel = this.fieldModel;
+        this.fieldControls.wsConnector = this.wsConnector;
     }
     
     start() {
         console.log("Starting application.");
         this.fieldModel.initCellsAndTable();
-        this.connectWS();
+        this.wsConnector.connect();
     }
-    	
-    connectWS() {
-        // Create WebSocket connection.
-        const socket = new WebSocket('ws://localhost:8080/ws');
 
-        // Connection opened
-        socket.addEventListener('open', function(event) {
-            socket.send('Hello Server!');
-        });
-
-        // Listen for messages
-        let fm = this.fieldModel
-        socket.addEventListener('message', function(event) {
-//            console.log('Message from server ', event.data);
-            fm.display(JSON.parse(event.data));
-        });
-        
-    }
 }
 
 // make it available on the web page 

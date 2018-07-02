@@ -20,7 +20,7 @@ public class RabbitFieldApp {
 	private static final Logger log = LogManager.getLogger();
 	private final EventBus eventBus;
 	private final Creator creator;
-	private Injector injector;
+	public static Injector injector;
 	
 	@Inject
 	public RabbitFieldApp(EventBus eventBus, Creator creator) {
@@ -36,8 +36,8 @@ public class RabbitFieldApp {
             }
         });
         Injector injector = Guice.createInjector(new MainGuiceModule());
+        RabbitFieldApp.injector = injector;
         RabbitFieldApp app = injector.getInstance(RabbitFieldApp.class);
-        app.setInjector(injector);
         app.startApp();
         log.info("Exiting Application");
     }
@@ -48,8 +48,8 @@ public class RabbitFieldApp {
         server.start();
         creator.initWorld();
         log.info("Initialization complete, point your browser to http://localhost:{}", WebServer.PORT);
+        
         Util.sleepSec(90);
-
         creator.endWorld();
     }
     
@@ -59,13 +59,5 @@ public class RabbitFieldApp {
     	eventBus.register(injector.getInstance(WebServer.class));
     	eventBus.register(injector.getInstance(FieldViewSender.class));
     }
-
-	public Injector getInjector() {
-		return injector;
-	}
-
-	public void setInjector(Injector injector) {
-		this.injector = injector;
-	}
     
 }

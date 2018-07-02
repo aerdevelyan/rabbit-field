@@ -54,7 +54,6 @@ public class CreatureControllerTest {
 		assertThat(statusUpdates).extracting(StatusUpdate::getAction).containsOnly(completedAction.get());
 	}
 	
-	
 	@Test
 	public void updateFulfillment_NewCreature() throws Exception {
 		Field field = new Field(); //mock(Field.class);

@@ -26,6 +26,17 @@ h1, h2 {
 	text-align: center; 
 }
 
+#fieldArea {
+	display: flex;
+}
+
+#fieldArea #controls {
+	height: 100px;
+	background-color: #729fcf;
+	padding: 20px;
+	margin: 0 20px 0 20px;
+}
+
 table.field {
 	border-style: solid;
 	border-width: 1px;
@@ -48,4 +59,9 @@ table.field {
 
 .field img {
 	display: block;
+}
+
+#iconsRefs {
+	width: 100%;
+	text-align: center;
 }
