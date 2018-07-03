@@ -4,6 +4,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.annotation.concurrent.GuardedBy;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,8 +15,11 @@ import org.apache.logging.log4j.Logger;
  */
 public abstract class AbstractCyclicTask implements Runnable {
 	private final static Logger log = LogManager.getLogger();
-	protected volatile boolean shutdown;
-	protected volatile boolean paused;
+	private volatile boolean shutdown;
+	private volatile boolean paused;
+	@GuardedBy("this") private long interval;
+	@GuardedBy("this") private TimeUnit intervalTimeUnit;
+	private long intervalNs;
 	private final ReentrantLock pauseLock = new ReentrantLock();
 	private final Condition unpaused = pauseLock.newCondition();
 
@@ -62,10 +67,17 @@ public abstract class AbstractCyclicTask implements Runnable {
 			pauseLock.unlock();
 		}
 	}
-
+	
+	public synchronized void setInterval(long interval, TimeUnit timeUnit) {
+		this.interval = interval;
+		this.intervalTimeUnit = timeUnit;
+		this.intervalNs = intervalTimeUnit.toNanos(interval);
+	}
+	
 	@Override
 	public void run() {
 		do {
+			long cycleBeginNs = System.nanoTime();
 			pauseLock.lock();
 			try {
 				while (paused) {
@@ -73,7 +85,7 @@ public abstract class AbstractCyclicTask implements Runnable {
 					log.debug("Await passed by {}, paused is {}", Thread.currentThread(), paused);
 				}
 			} catch (InterruptedException ie) {
-				log.warn("Await for resume was interrupted.", ie);
+				log.debug("Await for resume was interrupted.", ie);
 				Thread.currentThread().interrupt();
 			} finally {
 				pauseLock.unlock();
@@ -81,6 +93,15 @@ public abstract class AbstractCyclicTask implements Runnable {
 			
 			runCycle();
 			
+			if (interval > 0) {		// sleep until interval period passes
+				long passedNs = System.nanoTime() - cycleBeginNs;
+				try {
+					TimeUnit.NANOSECONDS.sleep(intervalNs - passedNs);
+				} catch (InterruptedException ie) {
+					log.debug("Sleep until interval pass was interrupted.", ie);
+					Thread.currentThread().interrupt();					
+				}
+			}
 		} while (!Thread.interrupted() && !shutdown);
 	}
 

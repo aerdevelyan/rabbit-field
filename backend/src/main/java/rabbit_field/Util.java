@@ -23,6 +23,14 @@ public class Util {
 		}
 	}
 	
+	public static void sleepMSec(long timeout) {
+        try {
+			TimeUnit.MILLISECONDS.sleep(timeout);
+		} catch (InterruptedException e) {
+			throw new Error("Interrupt while sleeping.", e);
+		}
+	}
+	
 	public static void imitateLongThinking(Creature creature) {
 		try {
 			TimeUnit.MILLISECONDS.sleep(new Random().nextInt(150));
