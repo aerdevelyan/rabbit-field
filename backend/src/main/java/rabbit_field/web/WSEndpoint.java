@@ -33,7 +33,7 @@ public class WSEndpoint {
 	
 	@OnMessage
 	public void msgHandler(String msg, Session session) {
-		log.info("recieved: " + msg);
+		log.debug("recieved: {}", msg);
 		ClientMsgHandler handler = RabbitFieldApp.injector.getInstance(ClientMsgHandler.class);
 		handler.handleMsg(msg);
 	}

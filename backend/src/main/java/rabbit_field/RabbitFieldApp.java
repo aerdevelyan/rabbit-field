@@ -54,6 +54,7 @@ public class RabbitFieldApp {
     }
     
     private void registerSubscribers() {
+    	eventBus.register(creator);
     	eventBus.register(injector.getInstance(MasterMind.class));
     	eventBus.register(injector.getInstance(CreatureController.class));
     	eventBus.register(injector.getInstance(WebServer.class));

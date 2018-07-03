@@ -24,7 +24,7 @@ import rabbit_field.msg.FieldViewMsg;
 @Singleton
 public class FieldViewSender implements Runnable {
 	private final static Logger log = LogManager.getLogger();
-	private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+	private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1, r -> new Thread(r, "Field view sender"));
 	private final Field field;
 	private final Jsonb jsonb;
 	
@@ -62,5 +62,6 @@ public class FieldViewSender implements Runnable {
 	public void shutdown(ShutdownEvent evt) {
 		executorService.shutdown();
 	}
+	
 }
 

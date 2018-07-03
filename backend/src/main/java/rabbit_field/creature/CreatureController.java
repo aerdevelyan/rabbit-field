@@ -72,12 +72,7 @@ public class CreatureController {
 	@Subscribe
 	public void pauseOrResume(PauseResumeEvent evt) {
 		log.info("Received pause/resume event: {}", evt.isPause());
-		if (evt.isPause()) {
-			updatesFulfillmentTask.pause();
-		}
-		else {
-			updatesFulfillmentTask.resume();
-		}
+		evt.applyTo(updatesFulfillmentTask);
 	}
 }
 
