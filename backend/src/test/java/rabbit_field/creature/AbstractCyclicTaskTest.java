@@ -8,14 +8,14 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-public class AbstractWatcherTaskTest {
+public class AbstractCyclicTaskTest {
 	
 	@Test
 	public void pauseResume() throws Exception {
 		CountDownLatch latch = new CountDownLatch(1);
-		AbstractWatcherTask task = new AbstractWatcherTask(true) {
+		AbstractCyclicTask task = new AbstractCyclicTask(true) {
 			@Override
-			protected void watchCycle() {
+			protected void runCycle() {
 				latch.countDown();
 			}
 		};

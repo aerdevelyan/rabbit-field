@@ -7,17 +7,21 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class AbstractWatcherTask implements Runnable {
+/**
+ * Base class for Runnable tasks that run as a loop that 
+ * can be paused or shut down.
+ */
+public abstract class AbstractCyclicTask implements Runnable {
 	private final static Logger log = LogManager.getLogger();
 	protected volatile boolean shutdown;
 	protected volatile boolean paused;
 	private final ReentrantLock pauseLock = new ReentrantLock();
 	private final Condition unpaused = pauseLock.newCondition();
 
-	public AbstractWatcherTask() {
+	public AbstractCyclicTask() {
 	}
 
-	public AbstractWatcherTask(boolean paused) {
+	public AbstractCyclicTask(boolean paused) {
 		this.paused = paused;
 	}
 
@@ -75,10 +79,11 @@ public abstract class AbstractWatcherTask implements Runnable {
 				pauseLock.unlock();
 			}
 			
-			watchCycle();
+			runCycle();
 			
 		} while (!Thread.interrupted() && !shutdown);
 	}
 
-	protected abstract void watchCycle();
+	protected abstract void runCycle();
 }
+

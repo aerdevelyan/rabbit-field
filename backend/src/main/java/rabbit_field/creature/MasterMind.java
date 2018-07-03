@@ -86,7 +86,7 @@ public class MasterMind {
 	 * - expired: cancel via Future
 	 * - completed: send to decidedActions queue
 	 */
-	protected static class ProcessWatcherTask extends AbstractWatcherTask {
+	protected static class ProcessWatcherTask extends AbstractCyclicTask {
 		private final static Logger log = LogManager.getLogger();
 		private final List<PendingProcess> processesToWatch = new LinkedList<>();
 		private final BlockingQueue<PendingProcess> enqueuedProcesses;
@@ -97,7 +97,7 @@ public class MasterMind {
 			this.decidedActions = decidedActions;
 		}
 		
-		@Override public void watchCycle() {
+		@Override public void runCycle() {
 			try {
 				// check processes queue, proceed if non-empty or processesToWatch has something to watch for 
 				if (enqueuedProcesses.isEmpty() && processesToWatch.isEmpty()) {

@@ -81,7 +81,7 @@ public class CreatureController {
 	}
 }
 
-class UpdatesFulfillmentTask extends AbstractWatcherTask {
+class UpdatesFulfillmentTask extends AbstractCyclicTask {
 	private final static Logger log = LogManager.getLogger();
 	private static final Marker ACT_MARKER = MarkerManager.getMarker("ACT");
 	private final BlockingQueue<StatusUpdate> statusUpdates;
@@ -103,7 +103,7 @@ class UpdatesFulfillmentTask extends AbstractWatcherTask {
 	}
 
 	@Override
-	protected void watchCycle() {
+	protected void runCycle() {
 		try {
 			StatusUpdate update = statusUpdates.poll(1, SECONDS);
 			if (update == null) return;
@@ -123,7 +123,7 @@ class UpdatesFulfillmentTask extends AbstractWatcherTask {
 	private void accomplishAction(Creature creature, Action action) {
 		if (action instanceof Action.Move) {
 			if (checkRabbitCaught(creature)) {
-				return;
+				return;		// TODO skip move correctly
 			}
 			field.move(creature, ((Action.Move) action).getDirection());  // TODO handle false return
 			creature.decrementStamina();
@@ -179,7 +179,7 @@ class UpdatesFulfillmentTask extends AbstractWatcherTask {
  * Takes creature actions from decidedActions queue after delay is done, 
  * produces and enqueues creature status updates.
  */
-class DecidedActionsWatcherTask extends AbstractWatcherTask {
+class DecidedActionsWatcherTask extends AbstractCyclicTask {
 	private final static Logger log = LogManager.getLogger();
 	private final DelayQueue<PendingProcess> decidedActions;
 	private final BlockingQueue<StatusUpdate> statusUpdates;
@@ -189,7 +189,7 @@ class DecidedActionsWatcherTask extends AbstractWatcherTask {
 		this.statusUpdates = statusUpdates;
 	}
 
-	@Override protected void watchCycle() {		
+	@Override protected void runCycle() {		
 		try {
 			log.debug("Examining decided actions queue.");
 			PendingProcess process = decidedActions.poll(1, SECONDS);
