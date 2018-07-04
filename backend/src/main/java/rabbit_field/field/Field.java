@@ -60,16 +60,19 @@ public class Field {
 		}
 		
 		public synchronized List<FOView> getObjView() {
-			return Collections.unmodifiableList(fovList);
+			if (fovList == null) {
+				fovList = updateView();
+			}
+			return fovList;
 		}
 		
 		public synchronized boolean addObject(FieldObject fo) {
-			if (fo.getPosition() != null) {
+			if (fo.getPosition() != null) {  // allow only new or removed from other cell
 				return false;
 			}
 			fo.setPosition(position);
 			if (objects.add(fo)) {
-				updateView();
+				fovList = null;
 				return true;
 			}
 			return false; 
@@ -78,7 +81,7 @@ public class Field {
 		public synchronized boolean removeObject(FieldObject fo) {
 			fo.setPosition(null);
 			if (objects.remove(fo)) {
-				updateView();
+				fovList = null;
 				return true;
 			}
 			return false;
@@ -112,8 +115,8 @@ public class Field {
 		}
 
 		// called on each change of contained objects set
-		private void updateView() {
-			fovList = objects.stream()
+		private List<FOView> updateView() {
+			return objects.stream()
 				.map(fo -> CellView.FO_VIEW_MAP.inverse().get(fo.getClass()))
 				.collect(toList());
 		}
@@ -160,13 +163,9 @@ public class Field {
 		}
 		return freeCell;
 	}
-	
-//	public List<FieldObject> whatIsAround(FieldObject obj, int horOffset, int vertOffset) {
-//		
-//		return null;
-//	}
-	
+		
 	public boolean isMoveAllowed(Position position, Direction direction) {
+		if (position == null || direction == null) return false;
 		return Position.isValid(position.getHpos() + direction.hoffset, position.getVpos() + direction.voffset);
 	}
 	
@@ -220,8 +219,20 @@ public class Field {
 	}
 	
 	public List<FOView> getViewAt(Position position) {
-		return findCellBy(position).getObjView();
+		Cell cell = findCellBy(position);
+		if (cell == null) return null;
+		return cell.getObjView();
 	}
+	
+	public List<FOView> whatIsAround(FieldObject fo, Direction direction, int distance) {
+		int hidx = fo.getPosition().getHpos() + direction.hoffset + distance;
+		int vidx = fo.getPosition().getVpos() + direction.voffset + distance;
+		if (Position.isValid(hidx, vidx)) {
+			return cells[hidx][vidx].getObjView();
+		}
+		return null;
+	}
+	
 	
 	@FunctionalInterface
 	private interface IdxConsumer {

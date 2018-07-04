@@ -40,16 +40,20 @@ public class Rabbit extends Creature {
 		log.debug("{} thinked {}ms, decided to: {}", getName(), (System.currentTimeMillis() - start), action);
 		return action;
 	}
-
+	
 	private Action move() {
-		Direction direction = chooseRandomDirection();
+		Direction direction = searchFoodNearby(0);
+		if (direction != null) {
+			return new Action.Move(direction);
+		}
+		direction =	chooseRandomDirection();
 		if (direction != null) {
 			return new Action.Move(direction);
 		}
 		log.warn("{} could not find valid direction to move.", this);
 		return Action.NONE;
 	}
-
+	
 	@Override
 	public String toString() {
 		return "Rabbit " + getName() + "(a:" + getAge() + ",s:" + getStamina() + ")";
@@ -57,7 +61,7 @@ public class Rabbit extends Creature {
 
 	@Override
 	public int calories() {
-		return 20;
+		return 25;
 	}
 	
 }

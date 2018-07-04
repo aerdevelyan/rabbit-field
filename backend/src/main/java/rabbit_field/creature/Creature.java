@@ -1,5 +1,6 @@
 package rabbit_field.creature;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -157,14 +158,34 @@ public abstract class Creature implements FieldObject {
 	}
 
 	protected Class<? extends FieldObject> checkForFood() {
-		for (FOView fov : getField().getViewAt(getPosition())) {
+		// TODO define & use method otherObjAtMyPos
+		return checkForFood(getField().getViewAt(getPosition()));
+	}
+	
+	protected Class<? extends FieldObject> checkForFood(List<FOView> cellView) {
+		if (cellView == null) return null;
+		for (FOView fov : cellView) {
 			if (canEat(fov.getOriginalClass())) {
 				log.debug("{} found food: {}", this, fov.name());
 				return fov.getOriginalClass();
 			}
 		}
+		return null;		
+	}
+	
+	protected Direction searchFoodNearby(int distance) {
+		for (int d = 0; d <= distance; d++) {
+			for (Direction dir : Direction.values()) {
+				List<FOView> viewNearby = getField().whatIsAround(this, dir, d);
+				Class<? extends FieldObject> food = checkForFood(viewNearby);
+				if (food != null) {
+					return dir; 
+				}
+			}
+		}
 		return null;
 	}
+	
 	
 	/**
 	 * For implementations to access the Field.

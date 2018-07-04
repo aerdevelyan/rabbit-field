@@ -1,7 +1,5 @@
 package rabbit_field;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +31,7 @@ import rabbit_field.field.Plant;
 public class Creator {
 	private final static Logger log = LogManager.getLogger();
 	private final int INIT_FOXES = 5;
-	private final int INIT_RABBITS = 10;
+	private final int INIT_RABBITS = 20;
 	private final int INIT_PLANTS = 50;
 	private final EventBus eventBus;
 	private final Field field;

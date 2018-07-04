@@ -109,11 +109,10 @@ class UpdatesFulfillmentTask extends AbstractCyclicTask {
 
 	private void accomplishAction(Creature creature, Action action) {
 		if (action instanceof Action.Move) {
-			if (checkRabbitCaught(creature)) {
-				return;		// TODO skip move correctly
+			if (!checkRabbitCaught(creature)) {// TODO skip move correctly
+				field.move(creature, ((Action.Move) action).getDirection());  // TODO handle false return
+				creature.decrementStamina();
 			}
-			field.move(creature, ((Action.Move) action).getDirection());  // TODO handle false return
-			creature.decrementStamina();
 		}
 		else if (action instanceof Action.Eat) {
 			Action.Eat eat = (Action.Eat) action;
@@ -140,14 +139,17 @@ class UpdatesFulfillmentTask extends AbstractCyclicTask {
 		}
 		else {
 			log.info("Removing dead creature {}", creature);
-			field.findCellBy(creature.getPosition()).removeObject(creature);
+			Cell cell = field.findCellBy(creature.getPosition());
+			if (cell != null) {
+				cell.removeObject(creature);
+			}
 		}
 	}
 
 	private boolean checkRabbitCaught(Creature creature) {
 		if (Rabbit.class.isInstance(creature)) {
 			List<FOView> view = field.getViewAt(creature.getPosition());
-			if (view.contains(FOView.FOX)) {
+			if (view != null && view.contains(FOView.FOX)) {
 				log.debug(ACT_MARKER, "{} got caught by a fox, cannot move.", creature);
 				return true;
 			}

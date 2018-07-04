@@ -52,7 +52,11 @@ public class Fox extends Creature {
 	}
 
 	private Action move() {
-		Direction direction = chooseRandomDirection();
+		Direction direction = searchFoodNearby(2);
+		if (direction != null) {
+			return new Action.Move(direction);
+		}		
+		direction = chooseRandomDirection();
 		if (direction != null) {
 			return new Action.Move(direction);
 		}		

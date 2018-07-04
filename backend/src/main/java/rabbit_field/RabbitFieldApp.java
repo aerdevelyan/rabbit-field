@@ -49,7 +49,7 @@ public class RabbitFieldApp {
         creator.initWorld();
         log.info("Initialization complete, point your browser to http://localhost:{}", WebServer.PORT);
         
-        Util.sleepSec(90);
+        Util.sleepSec(120);
         creator.endWorld();
     }
     

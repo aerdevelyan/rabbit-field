@@ -30,6 +30,7 @@ public class Position {
 	}
 
 	public static boolean isValid(Position position) {
+		if (position == null) return false;
 		return isValid(position.hpos, position.vpos);
 	}
 	
