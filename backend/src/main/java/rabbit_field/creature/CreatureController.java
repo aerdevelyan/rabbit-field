@@ -40,14 +40,14 @@ public class CreatureController {
 	private final BlockingQueue<StatusUpdate> statusUpdates = new LinkedBlockingQueue<>(); 
 	private final ExecutorService mindOutcomeWatchExec = Executors.newSingleThreadExecutor(r -> new Thread(r, "mind outcome taker"));
 	private final ExecutorService updatesExec = Executors.newSingleThreadExecutor(r -> new Thread(r, "updates fulfillment"));
-	private final DecidedActionsWatcherTask actionCompleterTask;
+	private final DecidedActionsWatcherTask mindOutcomeWatcherTask;
 	private final UpdatesFulfillmentTask updatesFulfillmentTask;
 	
 	@Inject
 	public CreatureController(MasterMind masterMind, Field field) {
-		actionCompleterTask = new DecidedActionsWatcherTask(masterMind.getDecidedActions(), statusUpdates);
+		mindOutcomeWatcherTask = new DecidedActionsWatcherTask(masterMind.getDecidedActions(), statusUpdates);
 		updatesFulfillmentTask = new UpdatesFulfillmentTask(statusUpdates, field, masterMind, true);
-		mindOutcomeWatchExec.execute(actionCompleterTask);
+		mindOutcomeWatchExec.execute(mindOutcomeWatcherTask);
 		updatesExec.execute(updatesFulfillmentTask);
 	}
 	
@@ -57,16 +57,8 @@ public class CreatureController {
 
 	@Subscribe 
 	public void shutdown(ShutdownEvent evt) {
-		actionCompleterTask.shutdown();
-		updatesFulfillmentTask.shutdown();
-		mindOutcomeWatchExec.shutdown();
-		updatesExec.shutdown();
-		try {
-			mindOutcomeWatchExec.awaitTermination(10, SECONDS);
-			updatesExec.awaitTermination(10, SECONDS);
-		} catch (InterruptedException e) {
-			log.error("Interrupt while waiting for termination of executors", e);
-		}
+		evt.add(ShutdownEvent.Ordering.UPDATES_FULFILLMENT, updatesFulfillmentTask, updatesExec, null)
+		   .add(ShutdownEvent.Ordering.MIND_OUTCOME_WATCHER, mindOutcomeWatcherTask, mindOutcomeWatchExec, null);
 	}
 	
 	@Subscribe
@@ -144,7 +136,7 @@ class UpdatesFulfillmentTask extends AbstractCyclicTask {
 		}
 		creature.incrementAge();
 		if (creature.isAlive()) {
-			masterMind.letCreatureThink(creature);
+			masterMind.letCreatureThink(creature);  // TODO handle mastermind exception or shutdown
 		}
 		else {
 			log.info("Removing dead creature {}", creature);

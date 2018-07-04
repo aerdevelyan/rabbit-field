@@ -58,8 +58,10 @@ public class Creator {
 
 	public void endWorld() {
 		log.info("Apocalypse everyone!");
-		eventBus.post(new ShutdownEvent());
-		log.info("Apocalypse completed");
+		ShutdownEvent event = new ShutdownEvent();
+		eventBus.post(event);
+		event.performShutdown();
+		log.info("Apocalypse completed.");
 	}
 	
 	private void initCreatures() {
@@ -112,14 +114,7 @@ public class Creator {
 	
 	@Subscribe 
 	public void shutdown(ShutdownEvent evt) {
-		plantGenTask.shutdown();
-		plantGenExec.shutdown();
-		try {
-			plantGenExec.awaitTermination(10, SECONDS);
-		} catch (InterruptedException e) {
-			log.error("Interrupt while waiting for termination of executor", e);
-		}
-		plantGenExec.shutdownNow();
+		evt.add(ShutdownEvent.Ordering.CREATOR, plantGenTask, plantGenExec, null);
 	}
 }
 

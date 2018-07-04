@@ -60,7 +60,7 @@ public class FieldViewSender implements Runnable {
 	
 	@Subscribe
 	public void shutdown(ShutdownEvent evt) {
-		executorService.shutdown();
+		evt.add(ShutdownEvent.Ordering.VIEW_SENDER, null, executorService, null);
 	}
 	
 }

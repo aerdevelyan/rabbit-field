@@ -190,17 +190,8 @@ public class MasterMind {
 	
 	@Subscribe 
 	public void shutdown(ShutdownEvent evt) {
-		log.info("Shutting down tasks and executors.");
-		processWatcherTask.shutdown();
-		processExec.shutdown();
-		processWatchExec.shutdown();
-		try {
-			processWatchExec.awaitTermination(10, SECONDS);
-			processExec.awaitTermination(10, SECONDS);
-		} catch (InterruptedException e) {
-			log.error("Interrupt while waiting for termination of executors", e);
-		}
-		log.info("Shutdown completed");
+		evt.add(ShutdownEvent.Ordering.MIND_PROCESS_WATCHER, processWatcherTask, processWatchExec, null)
+		   .add(ShutdownEvent.Ordering.MASTER_MIND, null, processExec, null);
 	}
 	
 }

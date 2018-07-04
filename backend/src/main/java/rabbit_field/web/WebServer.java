@@ -71,6 +71,6 @@ public class WebServer {
 	
 	@Subscribe 
 	public void shutdown(ShutdownEvent evt) {
-		stop();
+		evt.add(ShutdownEvent.Ordering.WEB_SERVER, null, null, () -> stop());
 	}
 }
