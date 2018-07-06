@@ -10,10 +10,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import rabbit_field.field.CellView.FOView;
-import rabbit_field.field.Field.Direction;
 import rabbit_field.field.CellView;
+import rabbit_field.field.CellView.FOView;
 import rabbit_field.field.Field;
+import rabbit_field.field.Field.Direction;
 import rabbit_field.field.Position;
 
 public class RabbitTest {
@@ -37,12 +37,23 @@ public class RabbitTest {
 	public void searchForFood() throws Exception {
 		Position foodPos = new Position(1, 1);
 		CellView cellView = new CellView(foodPos, List.of(FOView.CARROT));
-		when(field.whatIsAround(rabbit, Direction.NORTH, 1)).thenReturn(cellView);
+		when(field.whatIsAround(rabbit, Direction.NORTH, Rabbit.MAX_DISTANCE + 1)).thenReturn(cellView);
 		Position foundPos = rabbit.searchFoodNearby();
 		assertThat(foundPos).isEqualTo(null);  // too far
-		when(field.whatIsAround(rabbit, Direction.NORTH, 0)).thenReturn(cellView);
+		when(field.whatIsAround(rabbit, Direction.NORTH, Rabbit.MAX_DISTANCE)).thenReturn(cellView);
 		foundPos = rabbit.searchFoodNearby();
 		assertThat(foundPos).isEqualTo(foodPos);
 	}
 
+	@Test
+	public void avoidFox() throws Exception {
+		rabbit.setPosition(new Position(0, 1));
+		Position foxPos = new Position(0, 0);
+		CellView cellView = new CellView(foxPos, List.of(FOView.FOX));
+		when(field.whatIsAround(rabbit, Direction.NORTH, Rabbit.MAX_DISTANCE)).thenReturn(cellView);
+		Action action = rabbit.decideAction();
+		assertThat(action).isExactlyInstanceOf(Action.Move.class);
+		Action.Move moveAction = (Action.Move) action;
+		assertThat(moveAction.getDirection()).isNotEqualTo(Direction.NORTH);
+	}
 }

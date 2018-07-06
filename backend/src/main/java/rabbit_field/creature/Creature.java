@@ -149,16 +149,21 @@ public abstract class Creature implements FieldObject {
 	}
 	
 	protected Direction chooseRandomDirection() {
+		return chooseRandomDirectionExcept(null);
+	}
+
+	protected Direction chooseRandomDirectionExcept(Direction excDir) {
 		int tries = 0;
 		Direction direction = null;
 		do {
 			if (++tries > 100) return null;
 			direction = Direction.values()[new Random().nextInt(Direction.values().length)];
+			if (excDir != null && direction.equals(excDir)) continue;
 		} 
 		while (!getField().isMoveAllowed(this.getPosition(), direction));
 		return direction;
 	}
-
+	
 	protected Class<? extends FieldObject> checkForFood() {
 		// TODO define & use method otherObjAtMyPos
 		return checkForFood(getField().getViewAt(getPosition()));
