@@ -59,4 +59,16 @@ public class Position {
 	public String toString() {
 		return "Position [hpos=" + hpos + ", vpos=" + vpos + "]";
 	}
+
+	public Direction directionTo(Position otherPos) {
+		if (otherPos == null || this.equals(otherPos)) return null;
+		int hdiff = this.hpos - otherPos.hpos;
+		int vdiff = this.vpos - otherPos.vpos;
+		if (Math.abs(hdiff) > Math.abs(vdiff)) {
+			return hdiff > 0 ? Direction.WEST : Direction.EAST;
+		}
+		else {
+			return vdiff > 0 ? Direction.NORTH : Direction.SOUTH;
+		}
+	}
 }

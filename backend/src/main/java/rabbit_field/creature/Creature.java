@@ -3,10 +3,12 @@ package rabbit_field.creature;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.Function;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import rabbit_field.field.CellView;
 import rabbit_field.field.CellView.FOView;
 import rabbit_field.field.Field;
 import rabbit_field.field.Field.Direction;
@@ -173,13 +175,24 @@ public abstract class Creature implements FieldObject {
 		return null;		
 	}
 	
-	protected Direction searchFoodNearby(int distance) {
-		for (int d = 0; d <= distance; d++) {
-			for (Direction dir : Direction.values()) {
-				List<FOView> viewNearby = getField().whatIsAround(this, dir, d);
-				Class<? extends FieldObject> food = checkForFood(viewNearby);
-				if (food != null) {
-					return dir; 
+	protected Position searchFoodNearby() {
+		return searchAround(viewNearby -> {
+			Class<? extends FieldObject> food = checkForFood(viewNearby.getFobjects());
+			if (food != null) {
+				return viewNearby.getPosition();
+			}
+			return null;
+		});
+	}
+	
+	protected <R> R searchAround(Function<CellView, R> cellViewConsumer) {
+		for (int distance = 0; distance <= lookAroundDistance(); distance++) {
+			for (Direction direction : Direction.values()) {
+				CellView viewNearby = getField().whatIsAround(this, direction, distance);
+				if (viewNearby == null) continue;
+				R ret = cellViewConsumer.apply(viewNearby);
+				if (ret != null) {
+					return ret;
 				}
 			}
 		}
@@ -203,7 +216,12 @@ public abstract class Creature implements FieldObject {
 	 * Maximum actions per second.
 	 */
 	public abstract float getSpeed();
-		
+	
+	/**
+	 * How far creature can see around. Value is starting from zero (only next cells).
+	 */
+	public abstract int lookAroundDistance();
+	
 	/**
 	 * Every specific creature should place here its action taking logic.
 	 * Analyze the field, think about what action to take (move, eat).

@@ -11,10 +11,14 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import rabbit_field.field.CellView.FOView;
+import rabbit_field.field.Field.Direction;
+import rabbit_field.field.CellView;
 import rabbit_field.field.Field;
+import rabbit_field.field.Position;
 
 public class RabbitTest {
 	Field field = Mockito.mock(Field.class);
+	Rabbit rabbit = new Rabbit("test_rabbit", field);
 
 	@Before
 	public void setup() {
@@ -23,10 +27,22 @@ public class RabbitTest {
 	
 	@Test
 	public void decidesToEat() throws Exception {
-		Rabbit rabbit = new Rabbit("test_rabbit", field);
 		rabbit.decrementStamina();	// make it a little hungry 
 		Action action = rabbit.decideAction();
 		assertThat(action).isExactlyInstanceOf(Action.Eat.class);
 		assertThat(((Action.Eat) action).getDesiredObject()).isEqualTo(FOView.CARROT.getOriginalClass());
 	}
+	
+	@Test
+	public void searchForFood() throws Exception {
+		Position foodPos = new Position(1, 1);
+		CellView cellView = new CellView(foodPos, List.of(FOView.CARROT));
+		when(field.whatIsAround(rabbit, Direction.NORTH, 1)).thenReturn(cellView);
+		Position foundPos = rabbit.searchFoodNearby();
+		assertThat(foundPos).isEqualTo(null);  // too far
+		when(field.whatIsAround(rabbit, Direction.NORTH, 0)).thenReturn(cellView);
+		foundPos = rabbit.searchFoodNearby();
+		assertThat(foundPos).isEqualTo(foodPos);
+	}
+
 }

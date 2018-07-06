@@ -32,6 +32,11 @@ public class CreatureTest {
 			public int calories() {
 				return 0;
 			}
+
+			@Override
+			public int lookAroundDistance() {
+				return 1;
+			}
 		};
 	}
 	
@@ -73,4 +78,5 @@ public class CreatureTest {
 		assertThat(creature.boostStamina(1)).isFalse();
 		assertThat(creature.getStamina()).isZero();
 	}
+	
 }

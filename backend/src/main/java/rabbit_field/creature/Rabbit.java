@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import rabbit_field.field.Field;
 import rabbit_field.field.Field.Direction;
 import rabbit_field.field.FieldObject;
+import rabbit_field.field.Position;
 
 public class Rabbit extends Creature {
 	private static Logger log = LogManager.getLogger();
@@ -27,6 +28,21 @@ public class Rabbit extends Creature {
 	}
 
 	@Override
+	public int calories() {
+		return 25;
+	}
+
+	@Override
+	public int lookAroundDistance() {
+		return 0;
+	}
+
+	@Override
+	public String toString() {
+		return "Rabbit " + getName() + "(a:" + getAge() + ",s:" + getStamina() + ")";
+	}
+
+	@Override
 	public Action decideAction() {
 		long start = System.currentTimeMillis();
 		Action action = Action.NONE;
@@ -41,8 +57,14 @@ public class Rabbit extends Creature {
 		return action;
 	}
 	
+	private Action avoidFox() {
+		
+		return Action.NONE;
+	}
+	
 	private Action move() {
-		Direction direction = searchFoodNearby(0);
+		Position foodPos = searchFoodNearby();
+		Direction direction = getPosition().directionTo(foodPos);
 		if (direction != null) {
 			return new Action.Move(direction);
 		}
@@ -53,15 +75,5 @@ public class Rabbit extends Creature {
 		log.warn("{} could not find valid direction to move.", this);
 		return Action.NONE;
 	}
-	
-	@Override
-	public String toString() {
-		return "Rabbit " + getName() + "(a:" + getAge() + ",s:" + getStamina() + ")";
-	}
 
-	@Override
-	public int calories() {
-		return 25;
-	}
-	
 }

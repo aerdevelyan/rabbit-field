@@ -5,11 +5,13 @@ import org.apache.logging.log4j.Logger;
 
 import rabbit_field.field.Field;
 import rabbit_field.field.FieldObject;
+import rabbit_field.field.Position;
 import rabbit_field.field.Field.Direction;
 
 public class Fox extends Creature {
 	private static Logger log = LogManager.getLogger();
 	public static final int MAX_AGE = 300;
+	public static final int MAX_DISTANCE = 2;
 	public static final float SPEED = 1.85f;
 
 	public Fox(String name, Field field) {
@@ -32,6 +34,11 @@ public class Fox extends Creature {
 	}
 
 	@Override
+	public int lookAroundDistance() {
+		return MAX_DISTANCE;
+	}
+	
+	@Override
 	public String toString() {
 		return "Fox " + getName() + "(a:" + getAge() + ",s:" + getStamina() + ")";
 	}
@@ -52,7 +59,8 @@ public class Fox extends Creature {
 	}
 
 	private Action move() {
-		Direction direction = searchFoodNearby(2);
+		Position foodPos = searchFoodNearby();
+		Direction direction = getPosition().directionTo(foodPos);
 		if (direction != null) {
 			return new Action.Move(direction);
 		}		
@@ -63,5 +71,4 @@ public class Fox extends Creature {
 		log.warn("{} could not find valid direction to move.", this);
 		return Action.NONE;
 	}
-
 }

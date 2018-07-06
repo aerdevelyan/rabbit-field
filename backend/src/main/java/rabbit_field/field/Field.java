@@ -66,6 +66,10 @@ public class Field {
 			return fovList;
 		}
 		
+		public synchronized CellView getView() {
+			return new CellView(position, getObjView());
+		}
+		
 		public synchronized boolean addObject(FieldObject fo) {
 			if (fo.getPosition() != null) {  // allow only new or removed from other cell
 				return false;
@@ -224,11 +228,11 @@ public class Field {
 		return cell.getObjView();
 	}
 	
-	public List<FOView> whatIsAround(FieldObject fo, Direction direction, int distance) {
+	public CellView whatIsAround(FieldObject fo, Direction direction, int distance) {
 		int hidx = fo.getPosition().getHpos() + direction.hoffset + distance;
 		int vidx = fo.getPosition().getVpos() + direction.voffset + distance;
 		if (Position.isValid(hidx, vidx)) {
-			return cells[hidx][vidx].getObjView();
+			return cells[hidx][vidx].getView();
 		}
 		return null;
 	}
