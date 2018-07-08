@@ -1,5 +1,7 @@
 package rabbit_field;
 
+import java.util.concurrent.CountDownLatch;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -12,12 +14,14 @@ import com.google.inject.Injector;
 
 import rabbit_field.creature.CreatureController;
 import rabbit_field.creature.MasterMind;
+import rabbit_field.event.ShutdownEvent;
 import rabbit_field.web.FieldViewSender;
 import rabbit_field.web.WebServer;
 
 @Singleton
 public class RabbitFieldApp {
 	private static final Logger log = LogManager.getLogger();
+	private static final CountDownLatch appMainThreadLatch = new CountDownLatch(1);
 	private final EventBus eventBus;
 	private final Creator creator;
 	public static Injector injector;
@@ -28,30 +32,43 @@ public class RabbitFieldApp {
 		this.creator = creator;
 	}
 
-	public static void main(String[] args) {
-        log.info("Starting Application");
+	public static void main(String[] args) throws Exception {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
-            	log.warn("Shutdown hook");
+            	log.warn("Shutdown hook executed.");
             }
         });
+        log.info("Initializinng injector and main application class.");
         Injector injector = Guice.createInjector(new MainGuiceModule());
         RabbitFieldApp.injector = injector;
         RabbitFieldApp app = injector.getInstance(RabbitFieldApp.class);
         app.startApp();
-        log.info("Exiting Application");
+        appMainThreadLatch.await();
+        app.shutdown();
+        log.info("Exiting application.");
     }
 
-    public void startApp() {
+	public static void proceedToShutdown() {
+		appMainThreadLatch.countDown();
+	}
+	
+    private void startApp() {
+    	log.info("Starting application.");
         registerSubscribers();
         WebServer server = injector.getInstance(WebServer.class);
         server.start();
         creator.initWorld();
         log.info("Initialization complete, point your browser to http://localhost:{}", WebServer.PORT);
-        
-        Util.sleepSec(120);
-        creator.endWorld();
+//        Util.sleepSec(100);
     }
+    
+	private void shutdown() {
+		log.info("Apocalypse everyone!");
+		ShutdownEvent event = new ShutdownEvent();
+		eventBus.post(event);
+		event.performShutdown();
+		log.info("Apocalypse completed.");
+	}
     
     private void registerSubscribers() {
     	eventBus.register(creator);

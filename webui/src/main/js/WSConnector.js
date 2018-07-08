@@ -18,9 +18,8 @@ export default class WSConnector {
         });
 
         // Listen for messages
-//        let fm = this.fieldModel
         this.socket.addEventListener('message', event => {
-            console.log('Message from server ', event.data);
+//            console.log('Message from server ', event.data);
             this.fieldModel.display(JSON.parse(event.data));
         });
         

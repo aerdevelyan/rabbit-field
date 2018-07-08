@@ -1,5 +1,7 @@
 package rabbit_field.web;
 
+import java.io.IOException;
+
 import javax.inject.Inject;
 import javax.servlet.ServletException;
 
@@ -26,7 +28,8 @@ public class WebServer {
 	private static Logger log = LogManager.getLogger();
 	private Undertow server;
 	private FieldViewSender fieldViewSender;
-
+	private DeploymentManager manager;
+	
 	@Inject
 	public WebServer(FieldViewSender fieldViewSender) {
 		this.fieldViewSender = fieldViewSender;
@@ -46,7 +49,7 @@ public class WebServer {
                 .setDeploymentName("rabbit_field.war");
 
         final ServletContainer container = ServletContainer.Factory.newInstance();
-        DeploymentManager manager = container.addDeployment(deploymentInfo);
+        manager = container.addDeployment(deploymentInfo);
         manager.deploy();
         
 		PathHandler pathHandler = Handlers.path();
@@ -66,6 +69,12 @@ public class WebServer {
 	
 	public void stop() {
 		log.info("Stopping web server.");
+		try {
+			WSEndpoint.session.close();
+			manager.stop();
+		} catch (IOException | ServletException e) {
+			log.error("Could not close WebSocket session.", e);
+		}
 		server.stop();
 	}
 	
@@ -74,3 +83,4 @@ public class WebServer {
 		evt.add(ShutdownEvent.Ordering.WEB_SERVER, null, null, () -> stop());
 	}
 }
+

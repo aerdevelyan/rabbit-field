@@ -1,7 +1,7 @@
 
 
 /**
- * Field controls.
+ * Listens to events from field controls.
  */
 export default class FieldControls {
     constructor() {
@@ -12,6 +12,7 @@ export default class FieldControls {
     
     initListeners() {
         document.getElementById("btnPauseResume").addEventListener('click', () => this.pauseResumeToggle());
+        document.getElementById("btnShutdown").addEventListener('click', () => this.shutdown());
     }
     
     pauseResumeToggle() {
@@ -20,8 +21,15 @@ export default class FieldControls {
             type: 'PAUSE_RESUME',
             pause: this.pause
         };
-        console.log('PR toggle', pauseResumeMsg);
+        console.log('Pause/Resume toggle', pauseResumeMsg);
         this.wsConnector.sendMsg(pauseResumeMsg);
-        
+    }
+    
+    shutdown() {
+        let shutdownMsg = {
+            type: 'SHUTDOWN'
+        }
+        console.log('Sending shutdown request', shutdownMsg);
+        this.wsConnector.sendMsg(shutdownMsg);
     }
 }

@@ -11,30 +11,29 @@ body {
 	font-size: 12px;
 }
 
-#header {
-	height: 100px;
-	background-color: #477e5e;
-	box-shadow: 0px 7px 20px -10px rgba(0, 0, 0, 0.506);
-}
-
-#footer {
-	height: 50px;
-	background-color: #f2f4f2;
-}
-
 h1, h2 {
 	text-align: center; 
 }
 
 #fieldArea {
 	display: flex;
+	margin-top: 15px;
 }
 
 #fieldArea #controls {
-	height: 100px;
+	width: 140px;
 	background-color: #729fcf;
 	padding: 20px;
 	margin: 0 20px 0 20px;
+}
+
+#fieldArea #controls button {
+	margin: 10px 0 10px 0;
+	width: 100%;
+}
+
+#fieldArea #controls #btnShutdown {
+	color: #a40000;
 }
 
 table.field {

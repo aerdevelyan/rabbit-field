@@ -10,7 +10,6 @@ import javax.inject.Singleton;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import rabbit_field.creature.AbstractCyclicTask;
@@ -30,18 +29,16 @@ import rabbit_field.field.Plant;
 @Singleton
 public class Creator {
 	private final static Logger log = LogManager.getLogger();
-	private final int INIT_FOXES = 5;
-	private final int INIT_RABBITS = 20;
+	private final int INIT_FOXES = 4;
+	private final int INIT_RABBITS = 10;
 	private final int INIT_PLANTS = 50;
-	private final EventBus eventBus;
 	private final Field field;
 	private final CreatureController creatureController; 
 	private final ExecutorService plantGenExec = Executors.newSingleThreadExecutor(r -> new Thread(r, "Plant generator"));
 	private PlantGeneratorTask plantGenTask;
 	
 	@Inject
-	public Creator(EventBus eventBus, Field field, CreatureController creatureController) {
-		this.eventBus = eventBus;
+	public Creator(Field field, CreatureController creatureController) {
 		this.field = field;
 		this.creatureController = creatureController;
 	}
@@ -52,14 +49,6 @@ public class Creator {
 		initCreatures();
 		plantGenTask = this.new PlantGeneratorTask(true);
 		plantGenExec.execute(plantGenTask);
-	}
-
-	public void endWorld() {
-		log.info("Apocalypse everyone!");
-		ShutdownEvent event = new ShutdownEvent();
-		eventBus.post(event);
-		event.performShutdown();
-		log.info("Apocalypse completed.");
 	}
 	
 	private void initCreatures() {

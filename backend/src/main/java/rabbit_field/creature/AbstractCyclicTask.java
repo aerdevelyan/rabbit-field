@@ -17,9 +17,7 @@ public abstract class AbstractCyclicTask implements Runnable {
 	private final static Logger log = LogManager.getLogger();
 	private volatile boolean shutdown;
 	private volatile boolean paused;
-	@GuardedBy("this") private long interval;
-	@GuardedBy("this") private TimeUnit intervalTimeUnit;
-	private long intervalNs;
+	@GuardedBy("this") private long intervalNs;
 	private final ReentrantLock pauseLock = new ReentrantLock();
 	private final Condition unpaused = pauseLock.newCondition();
 
@@ -69,9 +67,7 @@ public abstract class AbstractCyclicTask implements Runnable {
 	}
 	
 	public synchronized void setInterval(long interval, TimeUnit timeUnit) {
-		this.interval = interval;
-		this.intervalTimeUnit = timeUnit;
-		this.intervalNs = intervalTimeUnit.toNanos(interval);
+		this.intervalNs = timeUnit.toNanos(interval);
 	}
 	
 	@Override
@@ -93,7 +89,7 @@ public abstract class AbstractCyclicTask implements Runnable {
 			
 			runCycle();
 			
-			if (interval > 0) {		// sleep until interval period passes
+			if (intervalNs > 0) {		// sleep until interval period passes
 				long passedNs = System.nanoTime() - cycleBeginNs;
 				try {
 					TimeUnit.NANOSECONDS.sleep(intervalNs - passedNs);

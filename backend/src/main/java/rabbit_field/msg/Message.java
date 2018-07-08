@@ -6,7 +6,7 @@ package rabbit_field.msg;
 public class Message {
 	
 	public enum MsgType {
-		FIELD_VIEW(FieldViewMsg.class), PAUSE_RESUME(PauseResumeMsg.class);
+		FIELD_VIEW(FieldViewMsg.class), PAUSE_RESUME(PauseResumeMsg.class), SHUTDOWN(Message.class);
 		
 		private final Class<? extends Message> implementationClass;
 

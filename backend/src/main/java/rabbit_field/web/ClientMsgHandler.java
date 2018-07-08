@@ -12,6 +12,7 @@ import javax.json.bind.JsonbBuilder;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 
+import rabbit_field.RabbitFieldApp;
 import rabbit_field.event.PauseResumeEvent;
 import rabbit_field.msg.Message;
 import rabbit_field.msg.Message.MsgType;
@@ -40,8 +41,9 @@ public class ClientMsgHandler {
 		Class<? extends Message> msgImplClass = msgType.getImplementationClass();
 		Message message = jsonb.fromJson(msgStr, msgImplClass);
 		switch (msgType) {
-			case PAUSE_RESUME: eventBus.post( new PauseResumeEvent( (((PauseResumeMsg) message)).isPause() ) );
+			case PAUSE_RESUME: eventBus.post(new PauseResumeEvent((PauseResumeMsg) message));
 			break;
+			case SHUTDOWN: RabbitFieldApp.proceedToShutdown();
 			default:
 			break;
 		}
