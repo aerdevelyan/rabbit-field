@@ -1,5 +1,7 @@
 package rabbit_field.creature;
 
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -11,7 +13,7 @@ import rabbit_field.field.Position;
 
 public class Rabbit extends Creature {
 	private static Logger log = LogManager.getLogger();
-	public static final int MAX_AGE = 200;
+	public static final int MAX_AGE = 300;
 	public static final int MAX_DISTANCE = 0;
 	public static final float SPEED = 2.0f;
 	
@@ -47,8 +49,10 @@ public class Rabbit extends Creature {
 	@Override
 	public Action decideAction() {
 		long start = System.currentTimeMillis();
-		Action action = Action.NONE;
-		action = avoidFox();
+		if (caughtByFox()) {
+			return Action.NONE;
+		}
+		Action action = avoidFox();
 		if (action != null) {
 			return action;
 		}
@@ -90,4 +94,25 @@ public class Rabbit extends Creature {
 		return Action.NONE;
 	}
 
+	private boolean caughtByFox() {	
+		List<FOView> view = getField().getViewAt(getPosition());
+		if (view.contains(FOView.FOX)) {
+			log.info("{} got caught by a fox, cannot move.", this);
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public boolean canMove() {
+		return !caughtByFox();
+	}
+	
+	@Override
+	public boolean canMoveToCellWith(List<FOView> fos) {
+		if (fos.contains(FOView.RABBIT) || fos.contains(FOView.FOX)) {
+			return false;			
+		}
+		return true;
+	}
 }

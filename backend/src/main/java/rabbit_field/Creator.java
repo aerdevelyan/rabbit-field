@@ -29,26 +29,37 @@ import rabbit_field.field.Plant;
 @Singleton
 public class Creator {
 	private final static Logger log = LogManager.getLogger();
-	private final int INIT_FOXES = 4;
-	private final int INIT_RABBITS = 10;
+	private final int INIT_FOXES = 5;
+	private final int INIT_RABBITS = 15;
 	private final int INIT_PLANTS = 50;
 	private final Field field;
 	private final CreatureController creatureController; 
 	private final ExecutorService plantGenExec = Executors.newSingleThreadExecutor(r -> new Thread(r, "Plant generator"));
-	private PlantGeneratorTask plantGenTask;
+	private final PlantGeneratorTask plantGenTask;
 	
 	@Inject
 	public Creator(Field field, CreatureController creatureController) {
 		this.field = field;
 		this.creatureController = creatureController;
+		plantGenTask = this.new PlantGeneratorTask(true);
 	}
 
 	public void initWorld() {
 		log.info("Initializing world.");
 		initPlants();
 		initCreatures();
-		plantGenTask = this.new PlantGeneratorTask(true);
 		plantGenExec.execute(plantGenTask);
+	}
+	
+	@Subscribe
+	public void pauseOrResume(PauseResumeEvent evt) {
+		log.info("Received pause/resume event: {}", evt.isPause());
+		evt.applyTo(plantGenTask);
+	}
+	
+	@Subscribe 
+	public void shutdown(ShutdownEvent evt) {
+		evt.add(ShutdownEvent.Ordering.CREATOR, plantGenTask, plantGenExec, null);
 	}
 	
 	private void initCreatures() {
@@ -91,17 +102,6 @@ public class Creator {
 		protected void runCycle() {
 			generatePlants(++cycle);			
 		}
-	}
-	
-	@Subscribe
-	public void pauseOrResume(PauseResumeEvent evt) {
-		log.info("Received pause/resume event: {}", evt.isPause());
-		evt.applyTo(plantGenTask);
-	}
-	
-	@Subscribe 
-	public void shutdown(ShutdownEvent evt) {
-		evt.add(ShutdownEvent.Ordering.CREATOR, plantGenTask, plantGenExec, null);
 	}
 }
 

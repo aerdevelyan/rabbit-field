@@ -2,7 +2,6 @@ package rabbit_field.creature;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutionException;
@@ -23,9 +22,10 @@ import com.google.common.eventbus.Subscribe;
 import rabbit_field.creature.MasterMind.PendingProcess;
 import rabbit_field.event.PauseResumeEvent;
 import rabbit_field.event.ShutdownEvent;
-import rabbit_field.field.CellView.FOView;
 import rabbit_field.field.Field;
 import rabbit_field.field.Field.Cell;
+import rabbit_field.field.Field.Direction;
+import rabbit_field.field.Position;
 
 /**
  * Manages creatures.
@@ -96,9 +96,9 @@ class UpdatesFulfillmentTask extends AbstractCyclicTask {
 			if (update == null) return;
 			log.debug("Got creature status update {}", update);
 			switch (update.getStatusType()) {
-			case DECIDED: accomplishAction(update.getCreature(), update.getAction());
+				case DECIDED: accomplishAction(update.getCreature(), update.getAction());
 				break;
-			case NEW: addCreature(update.getCreature());
+				case NEW: addCreature(update.getCreature());
 				break;
 			}
 		} catch (InterruptedException e) {
@@ -109,9 +109,15 @@ class UpdatesFulfillmentTask extends AbstractCyclicTask {
 
 	private void accomplishAction(Creature creature, Action action) {
 		if (action instanceof Action.Move) {
-			if (!checkRabbitCaught(creature)) {// TODO skip move correctly
-				field.move(creature, ((Action.Move) action).getDirection());  // TODO handle false return
+			Direction desiredDir = ((Action.Move) action).getDirection();
+			Position desiredPos = creature.getPosition().calculateNewPosition(desiredDir);
+			Cell desiredCell = field.findCellBy(desiredPos);
+			if (creature.canMove() && creature.canMoveToCellWith(desiredCell.getObjView())) {
+				field.move(creature, desiredDir);  // TODO handle false return					
 				creature.decrementStamina();
+			}
+			else {
+				log.debug(ACT_MARKER, "Denied to move {} to {}, {}", creature, desiredPos, desiredDir);
 			}
 		}
 		else if (action instanceof Action.Eat) {
@@ -135,7 +141,7 @@ class UpdatesFulfillmentTask extends AbstractCyclicTask {
 		}
 		creature.incrementAge();
 		if (creature.isAlive()) {
-			masterMind.letCreatureThink(creature);  // TODO handle mastermind exception or shutdown
+			masterMind.letCreatureThink(creature);
 		}
 		else {
 			log.info("Removing dead creature {}", creature);
@@ -144,17 +150,6 @@ class UpdatesFulfillmentTask extends AbstractCyclicTask {
 				cell.removeObject(creature);
 			}
 		}
-	}
-
-	private boolean checkRabbitCaught(Creature creature) {
-		if (Rabbit.class.isInstance(creature)) {
-			List<FOView> view = field.getViewAt(creature.getPosition());
-			if (view != null && view.contains(FOView.FOX)) {
-				log.debug(ACT_MARKER, "{} got caught by a fox, cannot move.", creature);
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private void addCreature(Creature creature) {
@@ -187,6 +182,10 @@ class DecidedActionsWatcherTask extends AbstractCyclicTask {
 				statusUpdates.put(new StatusUpdate(StatusType.DECIDED, process.creature, Action.NONE_BY_CANCEL));
 			}
 			else {
+				if (!process.creature.isAlive()) {
+					log.debug("Discarding decision of dead creature {}", process.creature.getPosition());
+					return;
+				}
 				statusUpdates.put(new StatusUpdate(StatusType.DECIDED, process.creature, process.futureAction.get()));
 			}
 		} catch (InterruptedException e) {

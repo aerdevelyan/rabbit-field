@@ -37,6 +37,7 @@ public class CreatureControllerTest {
 	public void prepare() {
 		when(creature.getSpeed()).thenReturn(4f);
 		when(creature.toString()).thenReturn("test_creature");
+		when(creature.isAlive()).thenReturn(true);
 	}
 	
 	@Test

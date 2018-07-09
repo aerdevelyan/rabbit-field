@@ -1,7 +1,6 @@
 package rabbit_field.creature;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -24,8 +23,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.eventbus.Subscribe;
 
-import rabbit_field.creature.MasterMind.PendingProcess;
-import rabbit_field.creature.MasterMindException.FailureType;
 import rabbit_field.event.ShutdownEvent;
 
 /**
@@ -155,6 +152,7 @@ public class MasterMind {
 	private final BlockingQueue<PendingProcess> enqueuedProcesses = new LinkedBlockingQueue<>();
 	private final DelayQueue<PendingProcess> decidedActions = new DelayQueue<>();
 	private final ProcessWatcherTask processWatcherTask = new ProcessWatcherTask(enqueuedProcesses, decidedActions);
+	private volatile boolean shuttingDown = false;
 	
 	private void enqueue(MindProcessTask processTask) throws InterruptedException {
 		log.debug("Enqueueing mind process task {}", Thread.currentThread().getName());
@@ -170,6 +168,11 @@ public class MasterMind {
 	}
 
 	public boolean letCreatureThink(Creature creature) {
+		if (shuttingDown) {
+			log.info("Ignoring think request for {} due to shutdown.", creature);
+			return false;
+		}
+		
 		try {
 			enqueue(new MindProcessTask(creature));
 		} catch (Exception e) {
@@ -190,6 +193,7 @@ public class MasterMind {
 	
 	@Subscribe 
 	public void shutdown(ShutdownEvent evt) {
+		shuttingDown = true;
 		evt.add(ShutdownEvent.Ordering.MIND_PROCESS_WATCHER, processWatcherTask, processWatchExec, null)
 		   .add(ShutdownEvent.Ordering.MASTER_MIND, null, processExec, null);
 	}

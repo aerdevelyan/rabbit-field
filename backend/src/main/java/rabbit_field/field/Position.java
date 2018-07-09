@@ -22,7 +22,10 @@ public class Position {
 	}
 
 	public Position calculateNewPosition(Direction direction) {
-		return new Position(this.getHpos() + direction.hoffset, this.getVpos() + direction.voffset);
+		int newHpos = this.getHpos() + direction.hoffset;
+		int newVpos = this.getVpos() + direction.voffset;
+		if (!isValid(newHpos, newVpos)) return null;
+		return new Position(newHpos, newVpos);
 	}
 
 	public static boolean isValid(int hpos, int vpos) {
@@ -32,6 +35,18 @@ public class Position {
 	public static boolean isValid(Position position) {
 		if (position == null) return false;
 		return isValid(position.hpos, position.vpos);
+	}
+	
+	public Direction directionTo(Position otherPos) {
+		if (otherPos == null || this.equals(otherPos)) return null;
+		int hdiff = this.hpos - otherPos.hpos;
+		int vdiff = this.vpos - otherPos.vpos;
+		if (Math.abs(hdiff) > Math.abs(vdiff)) {
+			return hdiff > 0 ? Direction.WEST : Direction.EAST;
+		}
+		else {
+			return vdiff > 0 ? Direction.NORTH : Direction.SOUTH;
+		}
 	}
 	
 	@Override
@@ -57,18 +72,6 @@ public class Position {
 
 	@Override
 	public String toString() {
-		return "Position [hpos=" + hpos + ", vpos=" + vpos + "]";
-	}
-
-	public Direction directionTo(Position otherPos) {
-		if (otherPos == null || this.equals(otherPos)) return null;
-		int hdiff = this.hpos - otherPos.hpos;
-		int vdiff = this.vpos - otherPos.vpos;
-		if (Math.abs(hdiff) > Math.abs(vdiff)) {
-			return hdiff > 0 ? Direction.WEST : Direction.EAST;
-		}
-		else {
-			return vdiff > 0 ? Direction.NORTH : Direction.SOUTH;
-		}
+		return "Position[h:" + hpos + ", v:" + vpos + "]";
 	}
 }

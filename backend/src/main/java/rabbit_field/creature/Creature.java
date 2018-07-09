@@ -212,8 +212,12 @@ public abstract class Creature implements FieldObject {
 		return field;
 	}
 	
+	public abstract boolean canMove();
+	
+	public abstract boolean canMoveToCellWith(List<FOView> fos);
+	
 	/**
-	 * Tell for how long do you want to live on that beautiful Field.
+	 * For how long does it want to live on the field.
 	 */
 	public abstract int getMaxAge();
 	
@@ -223,7 +227,7 @@ public abstract class Creature implements FieldObject {
 	public abstract float getSpeed();
 	
 	/**
-	 * How far creature can see around. Value is starting from zero (only next cells).
+	 * How far creature can see around. Value is starting from zero (only neighboring cells).
 	 */
 	public abstract int lookAroundDistance();
 	
@@ -233,5 +237,4 @@ public abstract class Creature implements FieldObject {
 	 * @return
 	 */
 	public abstract Action decideAction();
-
 }

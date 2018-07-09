@@ -2,10 +2,13 @@ package rabbit_field.creature;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import rabbit_field.field.CellView.FOView;
 import rabbit_field.field.Field;
 
 
@@ -36,6 +39,16 @@ public class CreatureTest {
 			@Override
 			public int lookAroundDistance() {
 				return 1;
+			}
+
+			@Override
+			public boolean canMoveToCellWith(List<FOView> fos) {
+				return true;
+			}
+
+			@Override
+			public boolean canMove() {
+				return true;
 			}
 		};
 	}

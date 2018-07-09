@@ -44,7 +44,7 @@ public class RabbitFieldApp {
         RabbitFieldApp app = injector.getInstance(RabbitFieldApp.class);
         app.startApp();
         appMainThreadLatch.await();
-        app.shutdown();
+        app.initShutdown();
         log.info("Exiting application.");
     }
 
@@ -59,15 +59,13 @@ public class RabbitFieldApp {
         server.start();
         creator.initWorld();
         log.info("Initialization complete, point your browser to http://localhost:{}", WebServer.PORT);
-//        Util.sleepSec(100);
     }
     
-	private void shutdown() {
-		log.info("Apocalypse everyone!");
+	private void initShutdown() {
+		log.info("Sending shutdown event.");
 		ShutdownEvent event = new ShutdownEvent();
 		eventBus.post(event);
 		event.performShutdown();
-		log.info("Apocalypse completed.");
 	}
     
     private void registerSubscribers() {

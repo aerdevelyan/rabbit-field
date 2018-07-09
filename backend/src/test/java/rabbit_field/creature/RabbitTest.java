@@ -22,11 +22,11 @@ public class RabbitTest {
 
 	@Before
 	public void setup() {
-		when(field.getViewAt(any())).thenReturn(List.of(FOView.CARROT, FOView.RABBIT));
 	}
 	
 	@Test
 	public void decidesToEat() throws Exception {
+		when(field.getViewAt(any())).thenReturn(List.of(FOView.CARROT, FOView.RABBIT));
 		rabbit.decrementStamina();	// make it a little hungry 
 		Action action = rabbit.decideAction();
 		assertThat(action).isExactlyInstanceOf(Action.Eat.class);
@@ -56,4 +56,14 @@ public class RabbitTest {
 		Action.Move moveAction = (Action.Move) action;
 		assertThat(moveAction.getDirection()).isNotEqualTo(Direction.NORTH);
 	}
+	
+	@Test
+	public void caughtByFox() throws Exception {
+		Position rabbitPos = new Position(1, 1);
+		rabbit.setPosition(rabbitPos);
+		when(field.getViewAt(rabbitPos)).thenReturn(List.of(FOView.RABBIT, FOView.FOX));
+		Action action = rabbit.decideAction();
+		assertThat(action).isEqualTo(Action.NONE);
+	}
+	
 }

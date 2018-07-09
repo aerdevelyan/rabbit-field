@@ -9,7 +9,7 @@
 		<Root level="info">
 			<AppenderRef ref="Console" />
 		</Root>
-		<Logger name="rabbit_field.creature.Creature" additivity="false" level="debug">
+		<Logger name="rabbit_field.creature.Rabbit" additivity="false" level="info">
 			<AppenderRef ref="Console" />
 		</Logger>
 		<Logger name="rabbit_field.creature.UpdatesFulfillmentTask" additivity="false" level="debug">

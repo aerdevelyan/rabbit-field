@@ -113,6 +113,7 @@ public class Field {
 		}
 		
 		public Optional<FieldObject> findFirstByClass(Class<? extends FieldObject> foClass) {
+			if (foClass == null) throw new IllegalArgumentException("Class of field object can not be null.");
 			return objects.stream()
 					.filter(fo -> foClass.isInstance(fo))
 					.findFirst();
@@ -155,12 +156,12 @@ public class Field {
 		initCells();
 	}
 		
-	public Cell findRandomFreeCell() {
+	public Cell findRandomFreeCell() { // TODO optimize: keep table of free cells
 		Cell freeCell = null;
 		Random rnd = new Random();
 		while (true) {
 			Cell rndCell = cells[rnd.nextInt(Field.HOR_SIZE)][rnd.nextInt(Field.VERT_SIZE)];
-			if (rndCell.getObjects().size() == 0) {
+			if (rndCell.isEmpty()) {
 				freeCell = rndCell;
 				break;
 			}
@@ -201,7 +202,7 @@ public class Field {
 	}
 	
 	public Cell findCellBy(Position position) {
-		if (!Position.isValid(position)) {
+		if (position == null || !Position.isValid(position)) {
 			return null;
 		}
 		return cells[position.getHpos()][position.getVpos()];
