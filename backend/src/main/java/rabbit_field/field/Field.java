@@ -3,7 +3,6 @@ package rabbit_field.field;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +43,8 @@ public class Field {
 	/**
 	 * Cell is a container for {@link FieldObject}s.
 	 * Thread safety holds only with single FO mover: {@link CreatureController}.
-	 */ 
+	 * TODO move to separate file
+	 */
 	@ThreadSafe
 	public static class Cell {
 		private final Position position;
@@ -108,6 +108,10 @@ public class Field {
 			return objects.isEmpty();
 		}
 		
+		public synchronized void clear() {
+			objects.clear();
+		}
+		
 		public Position getPosition() {
 			return position;
 		}
@@ -155,18 +159,38 @@ public class Field {
 	public Field() {
 		initCells();
 	}
-		
-	public Cell findRandomFreeCell() { // TODO optimize: keep table of free cells
-		Cell freeCell = null;
-		Random rnd = new Random();
-		while (true) {
-			Cell rndCell = cells[rnd.nextInt(Field.HOR_SIZE)][rnd.nextInt(Field.VERT_SIZE)];
-			if (rndCell.isEmpty()) {
-				freeCell = rndCell;
-				break;
+
+
+	public Cell cellAtLinearIndex(int linIndex) {
+		int vidx = linIndex / HOR_SIZE;
+		int hidx = linIndex - vidx * HOR_SIZE;
+		if (!Position.isValid(hidx, vidx)) {
+			return null;
+		}
+		return cells[hidx][vidx];
+	}
+	
+	public Cell findRandomEmptyCell() {
+		int linearSize = HOR_SIZE * VERT_SIZE;
+		int initialIdx = new Random().nextInt(linearSize);
+		Cell cell = cellAtLinearIndex(initialIdx);
+		if (cell.isEmpty()) return cell;
+		int forwardLoc = initialIdx, backLoc = initialIdx;
+		boolean movedIdx = true;
+		while (movedIdx) {
+			movedIdx = false;
+			if (forwardLoc < linearSize - 1) {
+				cell = cellAtLinearIndex(++forwardLoc);
+				if (cell.isEmpty()) return cell;
+				movedIdx = true;
+			}
+			if (backLoc > 0) {
+				cell = cellAtLinearIndex(--backLoc);
+				if (cell.isEmpty()) return cell;
+				movedIdx = true;
 			}
 		}
-		return freeCell;
+		return null;
 	}
 		
 	public boolean isMoveAllowed(Position position, Direction direction) {
@@ -240,11 +264,11 @@ public class Field {
 	
 	
 	@FunctionalInterface
-	private interface IdxConsumer {
+	protected interface IdxConsumer {
 		void accept(int hidx, int vidx);
 	}
 	
-	private void interateIndexes(IdxConsumer ic) {		
+	protected void interateIndexes(IdxConsumer ic) {		
 		for (int vidx = 0; vidx < VERT_SIZE; vidx++) {
 			for (int hidx = 0; hidx < HOR_SIZE; hidx++) {
 				ic.accept(hidx, vidx);

@@ -81,12 +81,12 @@ public class Creator {
 
 	private void generatePlants(int cycle) {
 		if (cycle % Plant.Clover.RARITY == 0) {
-			Cell cell = field.findRandomFreeCell();
-			cell.addObject(new Plant.Clover());
+			Cell cell = field.findRandomEmptyCell();
+			if (cell != null) cell.addObject(new Plant.Clover());
 		}
 		if (cycle % Plant.Carrot.RARITY == 0) {
-			Cell cell = field.findRandomFreeCell();
-			cell.addObject(new Plant.Carrot());
+			Cell cell = field.findRandomEmptyCell();
+			if (cell != null) cell.addObject(new Plant.Carrot());
 		}		
 	}
 	

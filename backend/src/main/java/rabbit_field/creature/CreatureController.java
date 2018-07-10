@@ -153,8 +153,12 @@ class UpdatesFulfillmentTask extends AbstractCyclicTask {
 	}
 
 	private void addCreature(Creature creature) {
-		Cell freeCell = field.findRandomFreeCell();
-		freeCell.addObject(creature);
+		Cell cell = field.findRandomEmptyCell();
+		if (cell == null) {
+			log.warn("Could not find empty cell to add a new creature.");
+			return;
+		}
+		cell.addObject(creature);
 		masterMind.letCreatureThink(creature);
 	}
 }

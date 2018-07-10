@@ -59,17 +59,44 @@ public class FieldTest {
 	
 	@Test
 	public void createView() throws Exception {
-		field.findRandomFreeCell().addObject(fo);
+		field.findRandomEmptyCell().addObject(fo);
 		FieldObject fo2 = new Plant.Clover();
-		field.findRandomFreeCell().addObject(fo2);
+		field.findRandomEmptyCell().addObject(fo2);
 		FieldObject fo3 = new Plant.Carrot();
-		field.findRandomFreeCell().addObject(fo3);
+		field.findRandomEmptyCell().addObject(fo3);
 		List<CellView> fview = field.getView();
 		assertThat(fview).isNotNull().hasSize(3);
 		assertThat(fview).flatExtracting(CellView::getFobjects).containsExactlyInAnyOrder(
 				FOView.RABBIT, FOView.CLOVER, FOView.CARROT);
 		assertThat(fview).extracting(CellView::getPosition).containsExactlyInAnyOrder(
 				fo.getPosition(), fo2.getPosition(), fo3.getPosition());
+	}
+	
+	@Test
+	public void findRandomEmptyCell_onEmptyField() throws Exception {
+		Cell cell1 = field.findRandomEmptyCell();
+		assertThat(cell1).isNotNull().returns(true, Cell::isEmpty);
+		cell1.addObject(fo);
+		Cell cell2 = field.findRandomEmptyCell();
+		assertThat(cell2).isNotNull().returns(true, Cell::isEmpty).isNotSameAs(cell1);
+	}
+	
+	@Test
+	public void findRandomEmptyCell_onSaturatedField() throws Exception {
+		field.interateIndexes((hidx, vidx) -> field.findCellBy(new Position(hidx, vidx)).addObject(new Plant.Carrot()));
+		Cell emptyCell = field.findRandomEmptyCell();
+		assertThat(emptyCell).isNull();
+		
+		Cell firstCell = field.findCellBy(new Position(0, 0));
+		firstCell.clear();
+		emptyCell = field.findRandomEmptyCell();
+		assertThat(emptyCell).isNotNull().returns(true, Cell::isEmpty).isSameAs(firstCell);		
+		firstCell.addObject(new Plant.Carrot());
+		
+		Cell lastCell = field.findCellBy(new Position(Field.HOR_SIZE - 1, Field.VERT_SIZE - 1));
+		lastCell.clear();
+		emptyCell = field.findRandomEmptyCell();
+		assertThat(emptyCell).isNotNull().returns(true, Cell::isEmpty).isSameAs(lastCell);
 	}
 }
 
