@@ -2,7 +2,6 @@ package rabbit_field.web;
 
 import java.io.IOException;
 
-import javax.inject.Inject;
 import javax.servlet.ServletException;
 
 import org.apache.logging.log4j.LogManager;
@@ -23,17 +22,17 @@ import rabbit_field.RabbitFieldApp;
 import rabbit_field.event.OrderedExecutionEvent.OrderingComponent;
 import rabbit_field.event.ShutdownEvent;
 
+/**
+ * Setting up and management of the embedded Undertow web server.
+ */
 @Singleton
 public class WebServer {
 	public static final int PORT = 8080;
 	private static Logger log = LogManager.getLogger();
 	private Undertow server;
-	private FieldViewSender fieldViewSender;
 	private DeploymentManager manager;
 	
-	@Inject
-	public WebServer(FieldViewSender fieldViewSender) {
-		this.fieldViewSender = fieldViewSender;
+	public WebServer() {
 	}
 
 	public void start() {
@@ -65,7 +64,6 @@ public class WebServer {
                 .setHandler(pathHandler)
                 .build();
         server.start();
-        fieldViewSender.start();
 	}
 	
 	public void stop() {

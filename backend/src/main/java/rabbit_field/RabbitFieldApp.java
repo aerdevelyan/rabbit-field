@@ -18,6 +18,9 @@ import rabbit_field.event.ShutdownEvent;
 import rabbit_field.web.FieldViewSender;
 import rabbit_field.web.WebServer;
 
+/**
+ * Main application class.
+ */
 @Singleton
 public class RabbitFieldApp {
 	private static final Logger log = LogManager.getLogger();
@@ -33,11 +36,6 @@ public class RabbitFieldApp {
 	}
 
 	public static void main(String[] args) throws Exception {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-            	log.warn("Shutdown hook executed.");
-            }
-        });
         log.info("Initializinng injector and main application class.");
         Injector injector = Guice.createInjector(new MainGuiceModule());
         RabbitFieldApp.injector = injector;
