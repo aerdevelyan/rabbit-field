@@ -29,7 +29,7 @@ public abstract class AbstractCyclicTask implements Runnable {
 	}
 
 	public void shutdown() {
-		log.debug("Shutdown is requested");
+		log.debug("Shutdown is requested for {}", getClass().getSimpleName());
 		shutdown = true;
 	}
 
@@ -42,7 +42,7 @@ public abstract class AbstractCyclicTask implements Runnable {
 			log.warn("Attempt to pause already paused task, ignoring.");
 			return;
 		}
-		log.info("Pausing task");
+		log.info("Pausing task {}", getClass().getSimpleName());
 		pauseLock.lock();
 		try {
 			paused = true;
@@ -53,14 +53,14 @@ public abstract class AbstractCyclicTask implements Runnable {
 
 	public void resume() {
 		if (!paused) {
-			log.warn("Attempt to resume normally running task, ignoring.");
+			log.warn("Attempt to resume normally running task {}, ignoring.", getClass().getSimpleName());
 			return;
 		}
 		pauseLock.lock();
 		try {
 			paused = false;
 			unpaused.signalAll();
-			log.info("Resuming task, by {}", Thread.currentThread());
+			log.info("Resuming task {}, by {}", getClass().getSimpleName(), Thread.currentThread());
 		} finally {
 			pauseLock.unlock();
 		}

@@ -262,6 +262,12 @@ public class Field {
 		return null;
 	}
 	
+	/**
+	 * Populate the cells array with new cells.
+	 */
+	public void initCells() {
+		interateIndexes((hidx, vidx) -> cells[hidx][vidx] = new Cell(hidx, vidx));
+	}
 	
 	@FunctionalInterface
 	protected interface IdxConsumer {
@@ -274,11 +280,6 @@ public class Field {
 				ic.accept(hidx, vidx);
 			}
 		}
-	}
-	
-	// create cells and populate the array
-	private void initCells() {
-		interateIndexes((hidx, vidx) -> cells[hidx][vidx] = new Cell(hidx, vidx));
 	}
 }
 

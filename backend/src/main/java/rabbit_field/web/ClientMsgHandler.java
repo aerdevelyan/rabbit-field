@@ -14,6 +14,7 @@ import com.google.common.eventbus.EventBus;
 
 import rabbit_field.RabbitFieldApp;
 import rabbit_field.event.PauseResumeEvent;
+import rabbit_field.event.ResetEvent;
 import rabbit_field.msg.Message;
 import rabbit_field.msg.Message.MsgType;
 import rabbit_field.msg.PauseResumeMsg;
@@ -44,8 +45,17 @@ public class ClientMsgHandler {
 			case PAUSE_RESUME: eventBus.post(new PauseResumeEvent((PauseResumeMsg) message));
 			break;
 			case SHUTDOWN: RabbitFieldApp.proceedToShutdown();
-			default:
 			break;
+			case RESET: reset();
+			break;
+			default:
 		}
+	}
+
+	private void reset() {
+		eventBus.post(new PauseResumeEvent(true));
+		ResetEvent resetEvent = new ResetEvent();
+		eventBus.post(resetEvent);
+		resetEvent.executeInOrder();
 	}
 }

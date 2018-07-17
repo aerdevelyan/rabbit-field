@@ -17,7 +17,9 @@ import rabbit_field.creature.Creature;
 import rabbit_field.creature.CreatureController;
 import rabbit_field.creature.Fox;
 import rabbit_field.creature.Rabbit;
+import rabbit_field.event.OrderedExecutionEvent.OrderingComponent;
 import rabbit_field.event.PauseResumeEvent;
+import rabbit_field.event.ResetEvent;
 import rabbit_field.event.ShutdownEvent;
 import rabbit_field.field.Field;
 import rabbit_field.field.Field.Cell;
@@ -42,13 +44,13 @@ public class Creator {
 		this.field = field;
 		this.creatureController = creatureController;
 		plantGenTask = this.new PlantGeneratorTask(true);
+		plantGenExec.execute(plantGenTask);
 	}
 
-	public void initWorld() {
-		log.info("Initializing world.");
+	public void populateField() {
+		log.info("Initial population of the Field.");
 		initPlants();
 		initCreatures();
-		plantGenExec.execute(plantGenTask);
 	}
 	
 	@Subscribe
@@ -57,9 +59,18 @@ public class Creator {
 		evt.applyTo(plantGenTask);
 	}
 	
+	@Subscribe
+	public void reset(ResetEvent evt) {
+		evt.addForExecution(OrderingComponent.CREATOR, () -> {
+			log.info("Resetting Creator: reinitializing cells and populating field.");
+			field.initCells();
+			populateField();			
+		});
+	}
+	
 	@Subscribe 
 	public void shutdown(ShutdownEvent evt) {
-		evt.add(ShutdownEvent.Ordering.CREATOR, plantGenTask, plantGenExec, null);
+		evt.add(OrderingComponent.CREATOR, plantGenTask, plantGenExec);
 	}
 	
 	private void initCreatures() {

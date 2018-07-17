@@ -12,6 +12,7 @@ export default class FieldControls {
     
     initListeners() {
         document.getElementById("btnPauseResume").addEventListener('click', () => this.pauseResumeToggle());
+        document.getElementById("btnReset").addEventListener('click', () => this.reset());
         document.getElementById("btnShutdown").addEventListener('click', () => this.shutdown());
     }
     
@@ -21,8 +22,17 @@ export default class FieldControls {
             type: 'PAUSE_RESUME',
             pause: this.pause
         };
-        console.log('Pause/Resume toggle', pauseResumeMsg);
+        console.log('Senging Pause/Resume toggle request', pauseResumeMsg);
         this.wsConnector.sendMsg(pauseResumeMsg);
+    }
+    
+    reset() {
+        let resetMsg = {
+            type: 'RESET'
+        }
+        console.log('Sending reset request', resetMsg);
+        this.wsConnector.sendMsg(resetMsg);        
+        if (!this.pause) this.pause = true;
     }
     
     shutdown() {

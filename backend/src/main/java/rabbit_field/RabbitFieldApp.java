@@ -57,7 +57,7 @@ public class RabbitFieldApp {
         registerSubscribers();
         WebServer server = injector.getInstance(WebServer.class);
         server.start();
-        creator.initWorld();
+        creator.populateField();
         log.info("Initialization complete, point your browser to http://localhost:{}", WebServer.PORT);
     }
     
@@ -65,7 +65,8 @@ public class RabbitFieldApp {
 		log.info("Sending shutdown event.");
 		ShutdownEvent event = new ShutdownEvent();
 		eventBus.post(event);
-		event.performShutdown();
+		event.executeInOrder();
+		log.info("Shutdown completed.");
 	}
     
     private void registerSubscribers() {

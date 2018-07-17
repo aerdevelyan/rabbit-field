@@ -20,6 +20,7 @@ import io.undertow.servlet.api.DeploymentManager;
 import io.undertow.servlet.api.ServletContainer;
 import io.undertow.websockets.jsr.WebSocketDeploymentInfo;
 import rabbit_field.RabbitFieldApp;
+import rabbit_field.event.OrderedExecutionEvent.OrderingComponent;
 import rabbit_field.event.ShutdownEvent;
 
 @Singleton
@@ -78,9 +79,9 @@ public class WebServer {
 		server.stop();
 	}
 	
-	@Subscribe 
+	@Subscribe
 	public void shutdown(ShutdownEvent evt) {
-		evt.add(ShutdownEvent.Ordering.WEB_SERVER, null, null, () -> stop());
+		evt.addForExecution(OrderingComponent.WEB_SERVER, this::stop);
 	}
 }
 

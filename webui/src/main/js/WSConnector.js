@@ -13,7 +13,6 @@ export default class WSConnector {
 
         // Connection opened
         this.socket.addEventListener('open', event => {
-//            this.socket.send('Hello Server!');
             console.log('Opened WS connection to the server.');
         });
 

@@ -21,7 +21,9 @@ import com.google.common.eventbus.Subscribe;
 
 import rabbit_field.creature.MasterMind.PendingProcess;
 import rabbit_field.event.PauseResumeEvent;
+import rabbit_field.event.ResetEvent;
 import rabbit_field.event.ShutdownEvent;
+import rabbit_field.event.OrderedExecutionEvent.OrderingComponent;
 import rabbit_field.field.Field;
 import rabbit_field.field.Field.Cell;
 import rabbit_field.field.Field.Direction;
@@ -57,8 +59,16 @@ public class CreatureController {
 
 	@Subscribe 
 	public void shutdown(ShutdownEvent evt) {
-		evt.add(ShutdownEvent.Ordering.UPDATES_FULFILLMENT, updatesFulfillmentTask, updatesExec, null)
-		   .add(ShutdownEvent.Ordering.MIND_OUTCOME_WATCHER, mindOutcomeWatcherTask, mindOutcomeWatchExec, null);
+		evt.add(OrderingComponent.UPDATES_FULFILLMENT, updatesFulfillmentTask, updatesExec)
+		   .add(OrderingComponent.MIND_OUTCOME_WATCHER, mindOutcomeWatcherTask, mindOutcomeWatchExec);
+	}
+	
+	@Subscribe
+	public void reset(ResetEvent evt) {
+		evt.addForExecution(OrderingComponent.UPDATES_FULFILLMENT, () -> {
+			log.info("Resetting CreatureController: clearing creature status updates.");
+			statusUpdates.clear();			
+		});
 	}
 	
 	@Subscribe
@@ -187,7 +197,7 @@ class DecidedActionsWatcherTask extends AbstractCyclicTask {
 			}
 			else {
 				if (!process.creature.isAlive()) {
-					log.debug("Discarding decision of dead creature {}", process.creature.getPosition());
+					log.debug("Discarding decision of dead creature {}", process.creature);
 					return;
 				}
 				statusUpdates.put(new StatusUpdate(StatusType.DECIDED, process.creature, process.futureAction.get()));

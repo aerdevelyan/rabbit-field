@@ -17,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.eventbus.Subscribe;
 
+import rabbit_field.event.OrderedExecutionEvent.OrderingComponent;
 import rabbit_field.event.ShutdownEvent;
 import rabbit_field.field.Field;
 import rabbit_field.msg.FieldViewMsg;
@@ -60,7 +61,7 @@ public class FieldViewSender implements Runnable {
 	
 	@Subscribe
 	public void shutdown(ShutdownEvent evt) {
-		evt.add(ShutdownEvent.Ordering.VIEW_SENDER, null, executorService, null);
+		evt.add(OrderingComponent.VIEW_SENDER, null, executorService);
 	}
 	
 }

@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Singleton;
@@ -23,6 +24,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.eventbus.Subscribe;
 
+import rabbit_field.event.OrderedExecutionEvent.OrderingComponent;
+import rabbit_field.event.ResetEvent;
 import rabbit_field.event.ShutdownEvent;
 
 /**
@@ -88,7 +91,8 @@ public class MasterMind {
 		private final List<PendingProcess> processesToWatch = new LinkedList<>();
 		private final BlockingQueue<PendingProcess> enqueuedProcesses;
 		private final DelayQueue<PendingProcess> decidedActions;
-
+		private final Semaphore inCycleSem = new Semaphore(1);
+		
 		public ProcessWatcherTask(BlockingQueue<PendingProcess> enqueuedProcesses, DelayQueue<PendingProcess> decidedActions) {
 			this.enqueuedProcesses = enqueuedProcesses;
 			this.decidedActions = decidedActions;
@@ -96,9 +100,11 @@ public class MasterMind {
 		
 		@Override public void runCycle() {
 			try {
+				inCycleSem.acquire();
 				// check processes queue, proceed if non-empty or processesToWatch has something to watch for 
 				if (enqueuedProcesses.isEmpty() && processesToWatch.isEmpty()) {
 					MILLISECONDS.sleep(5);
+					inCycleSem.release();
 					return;
 				} else {
 					int drained = enqueuedProcesses.drainTo(processesToWatch);
@@ -124,6 +130,7 @@ public class MasterMind {
 					}
 				}
 				MILLISECONDS.sleep(5);
+				inCycleSem.release();
 			} catch (InterruptedException e) {
 				log.debug("ProcessWatcherTask was interrupted", e);
 				Thread.currentThread().interrupt();
@@ -141,8 +148,26 @@ public class MasterMind {
 				throw new IllegalStateException("Speed of a creature must be positive value.");
 			}
 			long maxTimeAllowedMs = (long) ((1f / combinedSpeed) * 1_000L);
-			log.debug("Creatures: {}, comb speed: {}, max time: {}", processesToWatch.size(), combinedSpeed, maxTimeAllowedMs);
+			log.debug("Creatures: {}, comb. speed: {}, max time: {}", processesToWatch.size(), combinedSpeed, maxTimeAllowedMs);
 			return maxTimeAllowedMs;
+		}
+		
+		public void cancelAll() {
+			if (!isPaused()) pause();
+			try {
+				inCycleSem.acquire();
+				log.debug("To cancel & remove in enqueuedProcesses: {}, in processesToWatch: {}, in decidedActions: {}", 
+						enqueuedProcesses.size(), processesToWatch.size(), decidedActions.size());
+				enqueuedProcesses.forEach(pp -> pp.futureAction.cancel(true));
+				enqueuedProcesses.clear();
+				processesToWatch.forEach(pp -> pp.futureAction.cancel(true));
+				processesToWatch.clear();
+				decidedActions.clear();
+				inCycleSem.release();
+			} catch (InterruptedException e) {
+				log.error("Interrupt while cancelling processes and clearing queues.", e);
+			}
+			resume();
 		}
 	}
 	
@@ -184,20 +209,26 @@ public class MasterMind {
 			return false;
 		}
 		return true;
-//		throw new MasterMindException("Failed to enqueue mind process", e, FailureType.ENQUEUING);
 	}
 
 	public DelayQueue<PendingProcess> getDecidedActions() {
 		return decidedActions;
 	}
 	
-	@Subscribe 
+	@Subscribe
 	public void shutdown(ShutdownEvent evt) {
 		shuttingDown = true;
-		evt.add(ShutdownEvent.Ordering.MIND_PROCESS_WATCHER, processWatcherTask, processWatchExec, null)
-		   .add(ShutdownEvent.Ordering.MASTER_MIND, null, processExec, null);
+		evt.add(OrderingComponent.MIND_PROCESS_WATCHER, processWatcherTask, processWatchExec)
+		   .add(OrderingComponent.MASTER_MIND, null, processExec);
 	}
 	
+	@Subscribe
+	public void reset(ResetEvent evt) {
+		evt.addForExecution(OrderingComponent.MASTER_MIND, () -> {
+			log.info("Resetting MasterMind: cancelling and clearing enqueued processes.");
+			processWatcherTask.cancelAll();			
+		});
+	}
 }
 
 class MasterMindException extends Exception {
