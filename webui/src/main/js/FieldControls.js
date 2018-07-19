@@ -5,19 +5,22 @@
  */
 export default class FieldControls {
     constructor() {
+        this.initialized = true;
         this.pause = true;
         this.wsConnector;
         this.initListeners();
     }
     
     initListeners() {
-        document.getElementById("btnPauseResume").addEventListener('click', () => this.pauseResumeToggle());
+        document.getElementById("btnStart").addEventListener('click', () => this.pauseResumeToggle());
         document.getElementById("btnReset").addEventListener('click', () => this.reset());
         document.getElementById("btnShutdown").addEventListener('click', () => this.shutdown());
     }
     
     pauseResumeToggle() {
         this.pause = !this.pause;
+        this.initialized = false;
+        this.updateStartBtnLabel();
         let pauseResumeMsg = {
             type: 'PAUSE_RESUME',
             pause: this.pause
@@ -27,6 +30,9 @@ export default class FieldControls {
     }
     
     reset() {
+        this.initialized = true;
+        this.pause = true;
+        this.updateStartBtnLabel();
         let resetMsg = {
             type: 'RESET'
         }
@@ -41,5 +47,16 @@ export default class FieldControls {
         }
         console.log('Sending shutdown request', shutdownMsg);
         this.wsConnector.sendMsg(shutdownMsg);
+    }
+    
+    updateStartBtnLabel() {
+        let label = 'Pause';
+        if (this.pause && this.initialized) {
+            label = 'Start';
+        }
+        else if (this.pause) {
+            label = 'Resume';
+        }
+        document.getElementById("btnStart").textContent = label;
     }
 }
