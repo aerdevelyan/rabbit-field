@@ -31,6 +31,7 @@ public abstract class AbstractCyclicTask implements Runnable {
 	public void shutdown() {
 		log.debug("Shutdown is requested for {}", getClass().getSimpleName());
 		shutdown = true;
+		if (isPaused()) resume();
 	}
 
 	public boolean isPaused() {
@@ -69,7 +70,7 @@ public abstract class AbstractCyclicTask implements Runnable {
 	public synchronized void setInterval(long interval, TimeUnit timeUnit) {
 		this.intervalNs = timeUnit.toNanos(interval);
 	}
-	
+
 	@Override
 	public void run() {
 		do {
@@ -86,6 +87,7 @@ public abstract class AbstractCyclicTask implements Runnable {
 			} finally {
 				pauseLock.unlock();
 			}
+			if (shutdown) return;
 			
 			runCycle();
 			

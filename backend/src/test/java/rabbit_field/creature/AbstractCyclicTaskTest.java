@@ -37,23 +37,29 @@ public class AbstractCyclicTaskTest {
 	
 	@Test
 	public void waitUntilIntervalPass() throws Exception {
-		AbstractCyclicTask task = new AbstractCyclicTask() {
-			@Override
-			protected void runCycle() {
-				Util.sleepMSec(100);
-			}
-		};
-		task.shutdown();	// do not loop
-		
+		final int cycleTime = 100;
+		AbstractCyclicTask task = createTask(cycleTime);
 		task.setInterval(150, MILLISECONDS);	// interval is more than cycle period
 		long startMs = System.currentTimeMillis();
 		task.run();
 		assertThat(System.currentTimeMillis() - startMs).isCloseTo(150, within(1L));
 		
+		task = createTask(cycleTime);
 		task.setInterval(50, MILLISECONDS);	// interval is less than cycle period
 		startMs = System.currentTimeMillis();
 		task.run();
-		assertThat(System.currentTimeMillis() - startMs).isCloseTo(100, within(1L));
+		assertThat(System.currentTimeMillis() - startMs).isCloseTo(cycleTime, within(1L));
+	}
+
+	private AbstractCyclicTask createTask(int cycleTime) {
+		AbstractCyclicTask task = new AbstractCyclicTask() {
+			@Override
+			protected void runCycle() {
+				Util.sleepMSec(cycleTime);
+				shutdown();	// do not loop
+			}
+		};
+		return task;
 	}
 }
 

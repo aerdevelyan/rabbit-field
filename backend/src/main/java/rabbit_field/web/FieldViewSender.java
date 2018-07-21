@@ -20,6 +20,7 @@ import com.google.common.eventbus.Subscribe;
 import rabbit_field.creature.AbstractCyclicTask;
 import rabbit_field.event.OrderedExecutionEvent.OrderingComponent;
 import rabbit_field.event.PauseResumeEvent;
+import rabbit_field.event.ResetEvent;
 import rabbit_field.event.ShutdownEvent;
 import rabbit_field.field.Field;
 import rabbit_field.msg.FieldViewMsg;
@@ -30,7 +31,6 @@ import rabbit_field.msg.FieldViewMsg;
 @Singleton
 public class FieldViewSender {
 	private final static Logger log = LogManager.getLogger();
-	private final int INTERVAL_MS = 500;
 	private final ExecutorService executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Field view sender"));
 	private final Field field;
 	private final Jsonb jsonb;
@@ -50,6 +50,26 @@ public class FieldViewSender {
 		return JsonbBuilder.create(config);
 	}
 	
+	private void sendView() {
+		try {
+			Session session = WSEndpoint.session;
+			if (session != null && session.isOpen()) {
+				String json = jsonb.toJson(new FieldViewMsg(field.getView()));
+				session.getBasicRemote().sendText(json);
+			}
+		} catch (IOException e) {
+			log.error("Error while sending field view data", e);
+		}
+	}
+	
+	@Subscribe
+	public void reset(ResetEvent evt) {
+		evt.addForExecution(OrderingComponent.VIEW_SENDER, () -> {
+			log.info("Resetting FieldViewSender: sending re-inited field view to client.");
+			sendView();			
+		});
+	}
+	
 	@Subscribe
 	public void shutdown(ShutdownEvent evt) {
 		evt.add(OrderingComponent.VIEW_SENDER, senderTask, executor);
@@ -62,6 +82,7 @@ public class FieldViewSender {
 	}
 	
 	private class SenderTask extends AbstractCyclicTask {
+		private final int INTERVAL_MS = 500;
 
 		public SenderTask() {
 			super(true);
@@ -70,15 +91,7 @@ public class FieldViewSender {
 		
 		@Override
 		protected void runCycle() {
-			try {
-				Session session = WSEndpoint.session;
-				if (session != null && session.isOpen()) {
-					String json = jsonb.toJson(new FieldViewMsg(field.getView()));
-					session.getBasicRemote().sendText(json);
-				}
-			} catch (IOException e) {
-				log.error("Error while sending field view data", e);
-			}
+			sendView();
 		}		
 	}
 }
