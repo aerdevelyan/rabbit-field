@@ -3,6 +3,7 @@ package rabbit_field.creature;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BooleanSupplier;
 
 import javax.annotation.concurrent.GuardedBy;
 
@@ -18,6 +19,7 @@ public abstract class AbstractCyclicTask implements Runnable {
 	private volatile boolean shutdown;
 	private volatile boolean paused;
 	@GuardedBy("this") private long intervalNs;
+	@GuardedBy("this") private BooleanSupplier exitCondition = () -> false;
 	private final ReentrantLock pauseLock = new ReentrantLock();
 	private final Condition unpaused = pauseLock.newCondition();
 
@@ -70,6 +72,10 @@ public abstract class AbstractCyclicTask implements Runnable {
 	public synchronized void setInterval(long interval, TimeUnit timeUnit) {
 		this.intervalNs = timeUnit.toNanos(interval);
 	}
+	
+	public synchronized void setLoopExitCondition(BooleanSupplier exitCondition) {
+		this.exitCondition = exitCondition;
+	}
 
 	@Override
 	public void run() {
@@ -87,8 +93,8 @@ public abstract class AbstractCyclicTask implements Runnable {
 			} finally {
 				pauseLock.unlock();
 			}
+
 			if (shutdown) return;
-			
 			runCycle();
 			
 			if (intervalNs > 0) {		// sleep until interval period passes
@@ -100,7 +106,7 @@ public abstract class AbstractCyclicTask implements Runnable {
 					Thread.currentThread().interrupt();					
 				}
 			}
-		} while (!Thread.interrupted() && !shutdown);
+		} while (!Thread.interrupted() && !shutdown && !exitCondition.getAsBoolean());
 	}
 
 	protected abstract void runCycle();

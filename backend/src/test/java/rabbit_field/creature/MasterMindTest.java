@@ -39,7 +39,7 @@ public class MasterMindTest {
 		enqueuedProcesses.add(process);
 		
 		exec.execute(processWatcher);
-		processWatcher.shutdown();
+		processWatcher.setLoopExitCondition(() -> Boolean.TRUE);
 		exec.shutdown();
 		exec.awaitTermination(5, SECONDS);
 		
@@ -72,7 +72,7 @@ public class MasterMindTest {
 		enqueuedProcesses.add(new PendingProcess(creature, slowAction, System.currentTimeMillis()));
 		processWatcher.cancelAll();
 
-		processWatcher.shutdown();
+		processWatcher.setLoopExitCondition(() -> Boolean.TRUE);
 		exec.shutdown();
 		exec.awaitTermination(5, SECONDS);
 		

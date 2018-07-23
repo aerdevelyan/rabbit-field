@@ -39,20 +39,20 @@ public class CreatureControllerTest {
 		when(creature.toString()).thenReturn("test_creature");
 		when(creature.isAlive()).thenReturn(true);
 	}
-	
+
 	@Test
 	public void decidedActionsWatcherCreatesStatusUpdate() throws Exception {
-		Future<Action> completedAction = CompletableFuture.completedFuture(Action.NONE);
-		DecidedActionsWatcherTask completerTask = new DecidedActionsWatcherTask(decidedActions, statusUpdates);
-		exec.execute(completerTask);
-		PendingProcess process = new PendingProcess(creature, completedAction, System.currentTimeMillis());
+		Future<Action> decidedAction = CompletableFuture.completedFuture(Action.NONE);
+		DecidedActionsWatcherTask decidedActionsWatcherTask = new DecidedActionsWatcherTask(decidedActions, statusUpdates);
+		exec.execute(decidedActionsWatcherTask);
+		PendingProcess process = new PendingProcess(creature, decidedAction, System.currentTimeMillis());
 		decidedActions.put(process);
-		completerTask.shutdown();
+		decidedActionsWatcherTask.setLoopExitCondition(decidedActions::isEmpty);;
 		exec.shutdown();
 		exec.awaitTermination(5, SECONDS);
 		System.out.println("delay time: " + (System.currentTimeMillis() - process.timeStarted));
 		assertThat(statusUpdates).hasSize(1).extracting(StatusUpdate::getCreature).containsOnly(creature);
-		assertThat(statusUpdates).extracting(StatusUpdate::getAction).containsOnly(completedAction.get());
+		assertThat(statusUpdates).extracting(StatusUpdate::getAction).containsOnly(decidedAction.get());
 	}
 	
 	@Test
@@ -61,7 +61,7 @@ public class CreatureControllerTest {
 		creature = new Rabbit("test_cr", field);
 		statusUpdates.add(new StatusUpdate(StatusType.NEW, creature, Action.NONE));
 		UpdatesFulfillmentTask uft = new UpdatesFulfillmentTask(statusUpdates, field, masterMind);
-		uft.shutdown();
+		uft.setLoopExitCondition(statusUpdates::isEmpty);
 		uft.run();
 		assertThat(creature.getPosition()).isNotNull();
 		Set<FieldObject> fobjects = field.findCellBy(creature.getPosition()).getObjects();
@@ -79,7 +79,7 @@ public class CreatureControllerTest {
 		int origStamina = creature.getStamina();
 		statusUpdates.add(new StatusUpdate(StatusType.DECIDED, creature, new Action.Move(Direction.SOUTH)));
 		UpdatesFulfillmentTask uft = new UpdatesFulfillmentTask(statusUpdates, field, masterMind);
-		uft.shutdown();
+		uft.setLoopExitCondition(statusUpdates::isEmpty);
 		uft.run();
 		assertThat(creature.getPosition().getVpos()).isEqualTo(origPosition.getVpos() + 1);
 		assertThat(creature.getAge()).isEqualTo(origAge + 1);
@@ -99,7 +99,7 @@ public class CreatureControllerTest {
 		cell.addObject(plant);
 		statusUpdates.add(new StatusUpdate(StatusType.DECIDED, creature, new Action.Eat(Plant.Carrot.class)));
 		UpdatesFulfillmentTask uft = new UpdatesFulfillmentTask(statusUpdates, field, masterMind);
-		uft.shutdown();
+		uft.setLoopExitCondition(statusUpdates::isEmpty);
 		uft.run();
 		assertThat(cell.getObjects()).doesNotContain(plant);
 		assertThat(creature.getStamina()).isEqualTo(1 + Plant.Carrot.CALORIES);
